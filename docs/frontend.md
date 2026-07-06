@@ -17,18 +17,31 @@ Public-facing site.
 
 ### admin (`apps/admin`, :3001)
 
-Admin console (login restricted to `admin` role).
+Admin console (login restricted to `admin` role). Uses the collapsible-icon
+sidebar layout (`components/app-shell.tsx` + `components/app-sidebar.tsx`); the
+sidebar is hidden on `/login`. The inset header carries the sidebar trigger, a
+route breadcrumb (`components/page-breadcrumb.tsx`), and the language/theme
+controls; sign-out lives in the sidebar footer.
 
 - `/` — redirects to `/users`
-- `/login` — rejects non-admin accounts
+- `/login` — rejects non-admin accounts (no sidebar)
 - `/users` — paginated user table; toggle a user's role via `PATCH /api/users/:id`
 
 ### doc (`apps/doc`, :3002)
 
-Static documentation site with a shared top nav (`components/site-nav.tsx`).
+Documentation site with a collapsible-icon sidebar
+(`components/app-sidebar.tsx`) whose two groups expand into submenus. The inset
+header carries the sidebar trigger, a route breadcrumb
+(`components/page-breadcrumb.tsx`), and the language/theme controls. Page modules
+are extracted into reusable components (`components/schema-modules.tsx`,
+`components/api-reference.tsx`) so each route renders one module, and each page's
+title matches its nav leaf.
 
-- `/` — API reference (endpoint cards)
-- `/schema` — database schema table + inline SVG ER diagram
+- `/` — overview / description with links into the two sections
+- `/schema` — ER diagram (submenu: Database Schema › ER Diagram)
+- `/schema/users` — users table + indexes (Database Schema › Users)
+- `/api/auth` — auth endpoints (API Reference › Auth)
+- `/api/users` — users endpoints (API Reference › Users)
 
 ## Shared packages
 
@@ -36,13 +49,14 @@ Static documentation site with a shared top nav (`components/site-nav.tsx`).
 
 shadcn components (Base UI) under `src/components`, `cn()` in `src/lib/utils.ts`,
 Tailwind v4 theme in `src/styles/globals.css`. Apps import via
-`@workspace/ui/components/<name>` and `@workspace/ui/globals.css`.
+`@workspace/ui/components/<name>` and `@workspace/ui/globals.css`. The full
+shadcn `base-mira` (Base UI) component set is installed here.
 
-Add components with the shadcn CLI from an app directory:
+Re-sync or add components with the shadcn CLI from an app directory:
 
 ```bash
 cd apps/web
-pnpm dlx shadcn@latest add <component>
+pnpm dlx shadcn@latest add <component>   # or: add --all
 ```
 
 The CLI writes to `packages/ui` and fixes imports. Keep `style`, `baseColor`,
@@ -55,6 +69,25 @@ button renders a non-`<button>` (e.g. a `next/link` anchor), pass
 ```tsx
 <Button nativeButton={false} render={<Link href="/login">Sign in</Link>} />
 ```
+
+#### Sidebar
+
+`@workspace/ui/components/sidebar` is a Base UI port of shadcn's collapsible
+sidebar (the stock component depends on Radix, so it was rebuilt on Base UI
+`Tooltip`/`Dialog`/`useRender`). Wrap the app in `SidebarProvider`, then compose
+`Sidebar` (`variant="inset"`, `collapsible="icon"`) with
+`SidebarHeader`/`SidebarContent`/`SidebarFooter`, `SidebarMenu`/`SidebarMenuItem`
+/`SidebarMenuButton`, and put page content in `SidebarInset`. `SidebarTrigger`
+toggles it (also `Cmd/Ctrl+B`); collapsed state persists in the `sidebar_state`
+cookie. On mobile (`useIsMobile`, `src/hooks/use-mobile.ts`) it becomes a
+`Dialog` drawer. `SidebarMenuButton` renders as a `next/link` via `render` and
+shows its label in a tooltip when collapsed. For nested navigation, wrap items
+in `SidebarMenuCollapsible` / `SidebarMenuCollapsibleTrigger` /
+`SidebarMenuCollapsiblePanel` (a thin wrapper over Base UI `Collapsible`, so
+apps don't import Base UI directly) with `SidebarMenuSub`/`SidebarMenuSubItem`/
+`SidebarMenuSubButton` inside. doc uses it in `components/app-sidebar.tsx`;
+admin adds a conditional `components/app-shell.tsx` so `/login` renders without
+a sidebar.
 
 ### @workspace/schemas
 
@@ -103,10 +136,18 @@ localStorage (`app-locale`) and keeps `<html lang>` in sync.
 
 ### Language & theme switcher
 
-`@workspace/ui/components/settings-menu` exports `SettingsMenu`, a shared
-top-right control combining the language picker (English / 中文) with the color
-mode (light / dark / system, via `next-themes`). web and admin mount it fixed in
-the top-right corner; doc places it in the site nav.
+`@workspace/ui/components/settings-menu` exports three controls over the shared
+language + color-mode state (`next-themes`):
+
+- `SettingsMenu` — one icon button opening a combined language + theme menu; used
+  by web (fixed top-right).
+- `LanguageMenu` — icon-only button opening just the language picker
+  (English / 中文).
+- `ThemeMenu` — icon-only button that cycles light → dark → system on click, with
+  the icon reflecting the current mode (sun / moon-stars / brightness).
+
+admin and doc place `LanguageMenu` + `ThemeMenu` at the right of the inset
+header.
 
 ## State management
 

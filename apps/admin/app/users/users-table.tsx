@@ -24,7 +24,6 @@ export function UsersTable() {
   const router = useRouter()
   const { t } = useTranslation()
   const tokens = useAuthStore((state) => state.tokens)
-  const clear = useAuthStore((state) => state.clear)
   const [ready, setReady] = React.useState(false)
   const [users, setUsers] = React.useState<User[]>([])
   const [loading, setLoading] = React.useState(true)
@@ -81,7 +80,7 @@ export function UsersTable() {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-4xl flex-col gap-4 p-6">
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-4 p-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-heading text-lg font-semibold">
@@ -94,16 +93,6 @@ export function UsersTable() {
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={() => void load()}>
             {t("admin.users.refresh")}
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              clear()
-              router.push("/login")
-            }}
-          >
-            {t("admin.users.signOut")}
           </Button>
         </div>
       </div>

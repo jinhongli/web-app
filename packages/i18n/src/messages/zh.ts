@@ -23,6 +23,8 @@ export const zh: Messages = {
     invalidInput: "输入无效",
     signInFailed: "登录失败",
     signedIn: "已登录",
+    toggleSidebar: "切换侧栏",
+    navigation: "导航",
   },
   web: {
     home: {
@@ -55,6 +57,10 @@ export const zh: Messages = {
     },
   },
   admin: {
+    nav: {
+      brand: "Web App 管理台",
+      users: "用户",
+    },
     login: {
       title: "管理员登录",
       description: "仅限管理员访问。",
@@ -84,6 +90,20 @@ export const zh: Messages = {
       brand: "Web App 文档",
       apiReference: "API 参考",
       databaseSchema: "数据库表设计",
+      schemaEr: "ER 图",
+      schemaUsers: "Users",
+      apiAuth: "Auth",
+      apiUsers: "Users",
+    },
+    home: {
+      title: "Web App 文档",
+      description:
+        "Web App 后端的参考文档。可从左侧边栏浏览数据库表设计与 HTTP API。",
+      schemaCardTitle: "数据库表设计",
+      schemaCardDescription:
+        "由 GORM 模型迁移生成的 PostgreSQL 表结构，包含 ER 图与 users 表。",
+      apiCardTitle: "API 参考",
+      apiCardDescription: "后端暴露的 HTTP 接口，按 auth 与 users 分组。",
     },
     api: {
       title: "API 参考",

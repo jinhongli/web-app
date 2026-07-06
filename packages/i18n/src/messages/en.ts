@@ -21,6 +21,8 @@ export const en = {
     invalidInput: "Invalid input",
     signInFailed: "Sign in failed",
     signedIn: "Signed in",
+    toggleSidebar: "Toggle sidebar",
+    navigation: "Navigation",
   },
   web: {
     home: {
@@ -53,6 +55,10 @@ export const en = {
     },
   },
   admin: {
+    nav: {
+      brand: "Web App Admin",
+      users: "Users",
+    },
     login: {
       title: "Admin sign in",
       description: "Restricted to administrators.",
@@ -82,6 +88,21 @@ export const en = {
       brand: "Web App Docs",
       apiReference: "API Reference",
       databaseSchema: "Database Schema",
+      schemaEr: "ER Diagram",
+      schemaUsers: "Users",
+      apiAuth: "Auth",
+      apiUsers: "Users",
+    },
+    home: {
+      title: "Web App Docs",
+      description:
+        "Reference documentation for the Web App backend. Browse the database schema and the HTTP API from the sidebar.",
+      schemaCardTitle: "Database Schema",
+      schemaCardDescription:
+        "PostgreSQL tables migrated from the GORM models, including the ER diagram and the users table.",
+      apiCardTitle: "API Reference",
+      apiCardDescription:
+        "HTTP endpoints exposed by the backend, grouped into auth and users.",
     },
     api: {
       title: "API Reference",

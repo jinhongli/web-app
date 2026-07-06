@@ -3,8 +3,8 @@ import type { Metadata } from "next"
 
 import "@workspace/ui/globals.css"
 import { Toaster } from "@workspace/ui/components/sonner"
-import { SettingsMenu } from "@workspace/ui/components/settings-menu"
 import { I18nProvider } from "@workspace/i18n/provider"
+import { AppShell } from "@/components/app-shell"
 import { ThemeProvider } from "@/components/theme-provider"
 import { cn } from "@workspace/ui/lib/utils"
 
@@ -34,10 +34,7 @@ export default function RootLayout({
       <body>
         <ThemeProvider>
           <I18nProvider>
-            <div className="fixed right-4 top-4 z-50">
-              <SettingsMenu />
-            </div>
-            {children}
+            <AppShell>{children}</AppShell>
           </I18nProvider>
         </ThemeProvider>
         <Toaster />
