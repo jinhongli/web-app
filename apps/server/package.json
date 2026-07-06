@@ -1,0 +1,13 @@
+{
+  "name": "server",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "PATH=\"$HOME/sdk/go1.24.4/bin:$PATH\" go run ./cmd/server",
+    "build": "PATH=\"$HOME/sdk/go1.24.4/bin:$PATH\" go build -o bin/server ./cmd/server",
+    "start": "./bin/server",
+    "lint": "PATH=\"$HOME/sdk/go1.24.4/bin:$PATH\" go vet ./...",
+    "format": "PATH=\"$HOME/sdk/go1.24.4/bin:$PATH\" gofmt -w .",
+    "typecheck": "PATH=\"$HOME/sdk/go1.24.4/bin:$PATH\" go build ./..."
+  }
+}
