@@ -3,13 +3,8 @@
 import * as React from "react"
 import { usePathname } from "next/navigation"
 import { currentUrl, useAuthStore, webLoginUrl } from "@workspace/auth"
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@workspace/ui/components/sidebar"
-import { Separator } from "@workspace/ui/components/separator"
-import { LanguageMenu, ThemeMenu } from "@workspace/ui/components/settings-menu"
+import { SidebarInset, SidebarProvider } from "@workspace/ui/components/sidebar"
+import { SiteHeader } from "@workspace/views/site-header"
 
 import { AppSidebar } from "@/components/app-sidebar"
 import { PageBreadcrumb } from "@/components/page-breadcrumb"
@@ -48,18 +43,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <SidebarProvider>
+    <SidebarProvider
+      style={
+        {
+          "--sidebar-width": "calc(var(--spacing) * 72)",
+          "--header-height": "calc(var(--spacing) * 12)",
+        } as React.CSSProperties
+      }
+    >
       <AppSidebar />
       <SidebarInset>
-        <header className="flex h-12 shrink-0 items-center gap-2 border-b border-border/60 px-4 [&_svg]:size-3.5!">
-          <SidebarTrigger className="-ml-1" />
-          <Separator orientation="vertical" className="mr-2 h-4! self-center" />
+        <SiteHeader>
           <PageBreadcrumb />
-          <div className="ml-auto flex items-center gap-1">
-            <LanguageMenu />
-            <ThemeMenu />
-          </div>
-        </header>
+        </SiteHeader>
         {children}
       </SidebarInset>
     </SidebarProvider>

@@ -2,40 +2,19 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import {
-  IconBook,
-  IconChevronRight,
-  IconDatabase,
-  IconFileText,
-  IconLogout,
-} from "@tabler/icons-react"
+import { IconBook, IconDatabase, IconFileText } from "@tabler/icons-react"
 import { currentUrl, useAuthStore, webLoginUrl } from "@workspace/auth"
 import { useTranslation, type TranslationKey } from "@workspace/i18n"
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuCollapsible,
-  SidebarMenuCollapsiblePanel,
-  SidebarMenuCollapsibleTrigger,
-  SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
-  SidebarMenuSubItem,
-} from "@workspace/ui/components/sidebar"
+import { AppSidebar as ViewsAppSidebar } from "@workspace/views/app-sidebar"
+import type { SidebarSection } from "@workspace/views/types"
 
-type NavGroup = {
+type NavGroupConfig = {
   labelKey: TranslationKey
   icon: typeof IconFileText
   items: { href: string; labelKey: TranslationKey }[]
 }
 
-const navGroups: NavGroup[] = [
+const navGroups: NavGroupConfig[] = [
   {
     labelKey: "doc.nav.databaseSchema",
     icon: IconDatabase,
@@ -63,86 +42,42 @@ function isItemActive(pathname: string, href: string) {
 export function AppSidebar() {
   const pathname = usePathname()
   const { t } = useTranslation()
+  const user = useAuthStore((state) => state.user)
   const clear = useAuthStore((state) => state.clear)
 
+  const sections: SidebarSection[] = [
+    {
+      kind: "groups",
+      items: navGroups.map((group) => ({
+        title: t(group.labelKey),
+        icon: group.icon,
+        defaultOpen: group.items.some((item) => isItemActive(pathname, item.href)),
+        items: group.items.map((item) => ({
+          title: t(item.labelKey),
+          url: item.href,
+          isActive: isItemActive(pathname, item.href),
+        })),
+      })),
+    },
+  ]
+
   return (
-    <Sidebar variant="inset" collapsible="icon">
-      <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              size="lg"
-              render={<Link href="/" />}
-              tooltip={t("doc.nav.brand")}
-            >
-              <IconBook />
-              <span className="font-heading font-semibold">
-                {t("doc.nav.brand")}
-              </span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarHeader>
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {navGroups.map((group) => {
-                const Icon = group.icon
-                const groupActive = group.items.some((item) =>
-                  isItemActive(pathname, item.href)
-                )
-                return (
-                  <SidebarMenuCollapsible
-                    key={group.labelKey}
-                    defaultOpen={groupActive}
-                  >
-                    <SidebarMenuCollapsibleTrigger
-                      render={
-                        <SidebarMenuButton tooltip={t(group.labelKey)}>
-                          <Icon />
-                          <span>{t(group.labelKey)}</span>
-                          <IconChevronRight className="ml-auto transition-transform duration-200 group-data-[open]/menu-item:rotate-90" />
-                        </SidebarMenuButton>
-                      }
-                    />
-                    <SidebarMenuCollapsiblePanel>
-                      <SidebarMenuSub>
-                        {group.items.map((item) => (
-                          <SidebarMenuSubItem key={item.href}>
-                            <SidebarMenuSubButton
-                              isActive={isItemActive(pathname, item.href)}
-                              render={<Link href={item.href} />}
-                            >
-                              <span>{t(item.labelKey)}</span>
-                            </SidebarMenuSubButton>
-                          </SidebarMenuSubItem>
-                        ))}
-                      </SidebarMenuSub>
-                    </SidebarMenuCollapsiblePanel>
-                  </SidebarMenuCollapsible>
-                )
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
-      <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              tooltip={t("doc.nav.signOut")}
-              onClick={() => {
-                clear()
-                window.location.href = webLoginUrl(currentUrl())
-              }}
-            >
-              <IconLogout />
-              <span>{t("doc.nav.signOut")}</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarFooter>
-    </Sidebar>
+    <ViewsAppSidebar
+      variant="inset"
+      link={Link}
+      brand={{ title: t("doc.nav.brand"), url: "/", icon: IconBook }}
+      sections={sections}
+      user={{
+        user: {
+          name: user?.name ?? "",
+          email: user?.email ?? "",
+        },
+        signOutLabel: t("doc.nav.signOut"),
+        onSignOut: () => {
+          clear()
+          window.location.href = webLoginUrl(currentUrl())
+        },
+      }}
+    />
   )
 }

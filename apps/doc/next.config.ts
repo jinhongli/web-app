@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
     "@workspace/auth",
     "@workspace/i18n",
     "@workspace/schemas",
+    "@workspace/views",
   ],
 }
 

@@ -17,6 +17,7 @@ packages/
   apis/               @workspace/apis      typed HTTP client
   schemas/            @workspace/schemas   zod schemas + inferred types
   auth/               @workspace/auth      shared cookie-backed SSO session
+  views/              @workspace/views     shared app-shell (sidebar + header)
   i18n/               @workspace/i18n      en/zh catalogs via react-i18next
   eslint-config/      @workspace/eslint-config      shared flat ESLint config
   typescript-config/  @workspace/typescript-config  shared tsconfig presets
@@ -35,6 +36,7 @@ apps/doc ─┘        │
                    ├─▶ @workspace/ui ─▶ @workspace/i18n
                    ├─▶ @workspace/i18n
                    ├─▶ @workspace/auth ─▶ @workspace/schemas
+                   ├─▶ @workspace/views ─▶ @workspace/ui
                    └─▶ @workspace/utils
 apps/server (Go)  — independent module, no JS deps
 ```
@@ -43,6 +45,9 @@ apps/server (Go)  — independent module, no JS deps
 - `@workspace/apis` depends on `@workspace/schemas` (to validate payloads).
 - `@workspace/auth` depends on `@workspace/schemas` (for `User`/`Tokens` types)
   and holds the one session all three apps share (see SSO below).
+- `@workspace/views` depends on `@workspace/ui`; it composes the UI primitives
+  into the shared app-shell (sidebar + header) all three apps render. It takes
+  already-translated strings, so it does not depend on `@workspace/i18n`.
 - `@workspace/ui` depends on `@workspace/i18n` (the shared `SettingsMenu` reads
   translations), and `@workspace/i18n` is the only package that pulls in
   `i18next`/`react-i18next`, so everything shares one React context.

@@ -1,14 +1,6 @@
 "use client"
 
-import { useRouter } from "next/navigation"
-import {
-  IconCreditCard,
-  IconDotsVertical,
-  IconLogout,
-  IconNotification,
-  IconUserCircle,
-} from "@tabler/icons-react"
-import { useTranslation } from "@workspace/i18n"
+import { IconDotsVertical, IconLogout } from "@tabler/icons-react"
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import {
   DropdownMenu,
@@ -26,7 +18,7 @@ import {
   useSidebar,
 } from "@workspace/ui/components/sidebar"
 
-import { useAuthStore } from "@/lib/auth-store"
+import type { UserInfo, UserMenuItem } from "@workspace/views/types"
 
 function initials(name: string) {
   return (
@@ -39,23 +31,16 @@ function initials(name: string) {
   )
 }
 
-export function NavUser({
-  user,
-}: {
-  user: {
-    name: string
-    email: string
-  }
-}) {
-  const { isMobile } = useSidebar()
-  const { t } = useTranslation()
-  const router = useRouter()
-  const clear = useAuthStore((state) => state.clear)
+export interface NavUserProps {
+  user: UserInfo
+  /** Extra rows above the sign-out action (account, billing, …). */
+  items?: UserMenuItem[]
+  signOutLabel: string
+  onSignOut: () => void
+}
 
-  function signOut() {
-    clear()
-    router.push("/login")
-  }
+export function NavUser({ user, items, signOutLabel, onSignOut }: NavUserProps) {
+  const { isMobile } = useSidebar()
 
   return (
     <SidebarMenu>
@@ -101,25 +86,23 @@ export function NavUser({
                 </div>
               </DropdownMenuLabel>
             </DropdownMenuGroup>
+            {items && items.length > 0 ? (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuGroup>
+                  {items.map((item) => (
+                    <DropdownMenuItem key={item.label} onClick={item.onClick}>
+                      {item.icon ? <item.icon /> : null}
+                      {item.label}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuGroup>
+              </>
+            ) : null}
             <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <IconUserCircle />
-                {t("web.dashboard.user.account")}
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <IconCreditCard />
-                {t("web.dashboard.user.billing")}
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <IconNotification />
-                {t("web.dashboard.user.notifications")}
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={signOut}>
+            <DropdownMenuItem onClick={onSignOut}>
               <IconLogout />
-              {t("web.dashboard.user.logout")}
+              {signOutLabel}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

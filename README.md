@@ -16,7 +16,7 @@ apps/
   doc/      documentation — API reference + database schema
   server/   Go REST API — auth + users
 packages/
-  ui/ utils/ apis/ schemas/ auth/ i18n/    shared frontend libraries
+  ui/ utils/ apis/ schemas/ auth/ views/ i18n/    shared frontend libraries
   eslint-config/ typescript-config/
 ```
 

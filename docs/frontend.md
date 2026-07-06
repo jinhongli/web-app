@@ -18,26 +18,27 @@ Public-facing site.
   `?next=<url>` param (validated by `isAllowedRedirect`) to return the visitor to
   the app they came from (both wrapped in `<Suspense>` for `useSearchParams`).
 - `/dashboard` — authenticated dashboard (redirects to `/login` when signed
-  out). Ported from shadcn's `dashboard-01` block: an offcanvas
-  `AppSidebar` + `SiteHeader` shell (`app/dashboard/layout.tsx` holds the guard),
-  with `SectionCards`, an interactive `recharts` area chart
-  (`ChartAreaInteractive`), and a `@tanstack/react-table` + `@dnd-kit` data table
-  (`DataTable`, drag-to-reorder / column visibility / pagination / row drawer).
-  Components live in `components/dashboard/`; framework copy goes through
-  `@workspace/i18n` while the sample rows in `app/dashboard/data.json` stay
-  hardcoded. The global settings menu is hidden on this route
-  (`components/global-settings.tsx`) since the header carries its own controls.
+  out). Ported from shadcn's `dashboard-01` block: the offcanvas
+  `AppSidebar` + `SiteHeader` shell now comes from `@workspace/views`
+  (`app/dashboard/layout.tsx` holds the guard), with `SectionCards`, an
+  interactive `recharts` area chart (`ChartAreaInteractive`), and a
+  `@tanstack/react-table` + `@dnd-kit` data table (`DataTable`, drag-to-reorder /
+  column visibility / pagination / row drawer). Dashboard-specific components live
+  in `components/dashboard/`; framework copy goes through `@workspace/i18n` while
+  the sample rows in `app/dashboard/data.json` stay hardcoded. The global settings
+  menu is hidden on this route (`components/global-settings.tsx`) since the header
+  carries its own controls.
 
 ### admin (`apps/admin`, :3001)
 
-Admin console (restricted to the `admin` role). Uses the collapsible-icon
-sidebar layout (`components/app-shell.tsx` + `components/app-sidebar.tsx`).
-`AppShell` is the auth gate: it bounces signed-out visitors to the shared web
-login (`webLoginUrl(currentUrl())`), and renders an "access required" screen for
-signed-in non-admins. The inset header carries the sidebar trigger, a route
-breadcrumb (`components/page-breadcrumb.tsx`), and the language/theme controls;
-sign-out lives in the sidebar footer (clears the shared session, then redirects
-to the web login).
+Admin console (restricted to the `admin` role). Renders the shared
+`@workspace/views` sidebar + header shell (`components/app-shell.tsx` +
+`components/app-sidebar.tsx`). `AppShell` is the auth gate: it bounces signed-out
+visitors to the shared web login (`webLoginUrl(currentUrl())`), and renders an
+"access required" screen for signed-in non-admins. The header carries the sidebar
+trigger, a route breadcrumb (`components/page-breadcrumb.tsx`), and the
+language/theme controls; sign-out lives in the sidebar footer's avatar dropdown
+(clears the shared session, then redirects to the web login).
 
 - `/` — signed-in home: an intro + section cards (like doc). Signed-out visitors
   are redirected to the web login by `AppShell`.
@@ -47,10 +48,10 @@ to the web login).
 
 ### doc (`apps/doc`, :3002)
 
-Documentation site. Uses a collapsible-icon sidebar
-(`components/app-sidebar.tsx`, sign-out in the footer) wrapped in
-`components/app-shell.tsx`, which hides the chrome on the signed-out landing home
-and redirects protected routes to the shared web login when signed out. The inset
+Documentation site. Renders the shared `@workspace/views` sidebar + header shell
+(`components/app-sidebar.tsx` supplies two-level collapsible nav groups) wrapped
+in `components/app-shell.tsx`, which hides the chrome on the signed-out landing
+home and redirects protected routes to the shared web login when signed out. The
 header carries the sidebar trigger, a route breadcrumb
 (`components/page-breadcrumb.tsx`), and the language/theme controls. Page modules
 are extracted into reusable components (`components/schema-modules.tsx`,
@@ -108,11 +109,29 @@ in `SidebarMenuCollapsible` / `SidebarMenuCollapsibleTrigger` /
 apps don't import Base UI directly) with `SidebarMenuSub`/`SidebarMenuSubItem`/
 `SidebarMenuSubButton` inside. `SidebarMenuAction` renders a hover/focus action
 button (e.g. a row's `⋯` menu trigger) positioned inside a `SidebarMenuItem`.
-doc uses the sidebar in `components/app-sidebar.tsx`; admin wraps it in
-`components/app-shell.tsx`, which acts as the auth gate (redirect signed-out to
-the web login, "access required" for non-admins) rather than rendering the
-sidebar; web's `/dashboard` uses `variant="inset"` + `collapsible="offcanvas"`
-with the nav split into `components/dashboard/nav-*.tsx`.
+All three apps compose the sidebar (and the header) through the higher-level
+`@workspace/views` package rather than assembling these primitives directly.
+
+### @workspace/views
+
+Shared app-shell views so web / admin / doc render the **same sidebar and header
+layout** (styled after web's dashboard, `collapsible="offcanvas"`) while each app
+supplies its own content. Exports:
+
+- `AppSidebar` — brand header + body + `NavUser` footer. Driven by props: a
+  `link` component (each app passes its `next/link`), a `brand`, a `user` (avatar
+  dropdown with an optional menu + a sign-out handler), and `sections`. A section
+  is either flat `links` or nested collapsible `groups` (doc's two-level nav);
+  `topContent` and a per-item `action` slot cover web's quick-create CTA and
+  document row-action menus.
+- `SiteHeader` — sidebar trigger + separator + a `title` or `children` slot (apps
+  pass a breadcrumb) + the language/theme menus.
+- `NavUser` — the avatar dropdown used in the footer.
+
+Copy is **not** resolved here: apps pass already-translated strings (so `views`
+doesn't depend on `@workspace/i18n` keys). Each app's thin
+`components/app-sidebar.tsx` maps its i18n keys + nav config onto these props;
+web additionally wraps `SiteHeader` in `components/dashboard/site-header.tsx`.
 
 ### @workspace/auth
 

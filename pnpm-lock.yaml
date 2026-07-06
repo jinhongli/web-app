@@ -50,6 +50,9 @@ importers:
       '@workspace/utils':
         specifier: workspace:*
         version: link:../../packages/utils
+      '@workspace/views':
+        specifier: workspace:*
+        version: link:../../packages/views
       next:
         specifier: 16.2.6
         version: 16.2.6(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -114,6 +117,9 @@ importers:
       '@workspace/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      '@workspace/views':
+        specifier: workspace:*
+        version: link:../../packages/views
       next:
         specifier: 16.2.6
         version: 16.2.6(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -195,6 +201,9 @@ importers:
       '@workspace/utils':
         specifier: workspace:*
         version: link:../../packages/utils
+      '@workspace/views':
+        specifier: workspace:*
+        version: link:../../packages/views
       next:
         specifier: 16.2.6
         version: 16.2.6(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -482,6 +491,40 @@ importers:
 
   packages/utils:
     devDependencies:
+      '@workspace/eslint-config':
+        specifier: workspace:*
+        version: link:../eslint-config
+      '@workspace/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      eslint:
+        specifier: ^9
+        version: 9.39.4(jiti@2.7.0)
+      typescript:
+        specifier: ^5
+        version: 5.9.3
+
+  packages/views:
+    dependencies:
+      '@tabler/icons-react':
+        specifier: ^3.44.0
+        version: 3.44.0(react@19.2.4)
+      '@workspace/ui':
+        specifier: workspace:*
+        version: link:../ui
+      react:
+        specifier: 19.2.4
+        version: 19.2.4
+      react-dom:
+        specifier: 19.2.4
+        version: 19.2.4(react@19.2.4)
+    devDependencies:
+      '@types/react':
+        specifier: ^19
+        version: 19.2.15
+      '@types/react-dom':
+        specifier: ^19
+        version: 19.2.3(@types/react@19.2.15)
       '@workspace/eslint-config':
         specifier: workspace:*
         version: link:../eslint-config
