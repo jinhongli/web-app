@@ -30,7 +30,7 @@ export function PageBreadcrumb() {
 
   return (
     <Breadcrumb>
-      <BreadcrumbList>
+      <BreadcrumbList className="text-sm">
         {trail.map((labelKey, index) => {
           const label = t(labelKey)
           return (

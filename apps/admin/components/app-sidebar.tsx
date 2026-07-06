@@ -1,8 +1,9 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
+import { usePathname } from "next/navigation"
 import { IconLogout, IconShieldLock, IconUsers } from "@tabler/icons-react"
+import { currentUrl, useAuthStore, webLoginUrl } from "@workspace/auth"
 import { useTranslation } from "@workspace/i18n"
 import {
   Sidebar,
@@ -16,11 +17,8 @@ import {
   SidebarMenuItem,
 } from "@workspace/ui/components/sidebar"
 
-import { useAuthStore } from "@/lib/auth-store"
-
 export function AppSidebar() {
   const pathname = usePathname()
-  const router = useRouter()
   const { t } = useTranslation()
   const clear = useAuthStore((state) => state.clear)
 
@@ -67,7 +65,7 @@ export function AppSidebar() {
               tooltip={t("common.signOut")}
               onClick={() => {
                 clear()
-                router.push("/login")
+                window.location.href = webLoginUrl(currentUrl())
               }}
             >
               <IconLogout />

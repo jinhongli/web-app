@@ -14,6 +14,7 @@
   "dependencies": {
     "@tabler/icons-react": "^3.44.0",
     "@workspace/apis": "workspace:*",
+    "@workspace/auth": "workspace:*",
     "@workspace/i18n": "workspace:*",
     "@workspace/schemas": "workspace:*",
     "@workspace/ui": "workspace:*",

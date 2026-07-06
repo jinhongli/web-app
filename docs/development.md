@@ -69,6 +69,13 @@ Point frontends at the backend with `NEXT_PUBLIC_API_BASE_URL`:
 NEXT_PUBLIC_API_BASE_URL=http://localhost:8080 pnpm --filter web dev
 ```
 
+The apps also share one SSO session (a cookie readable across the localhost
+ports) and redirect to the web login when signed out. The cross-app origins and
+cookie settings (`NEXT_PUBLIC_{WEB,ADMIN,DOC}_URL`,
+`NEXT_PUBLIC_AUTH_COOKIE_NAME` / `_DOMAIN`) default to the dev ports, so no extra
+config is needed locally — see each app's `.env.example` and
+[architecture.md](architecture.md) for the SSO flow.
+
 ### Ports
 
 | App    | Default URL             |

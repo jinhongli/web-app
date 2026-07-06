@@ -1,9 +1,8 @@
 "use client"
 
 import * as React from "react"
+import { usePathname } from "next/navigation"
 import { currentUrl, useAuthStore, webLoginUrl } from "@workspace/auth"
-import { useTranslation } from "@workspace/i18n"
-import { Button } from "@workspace/ui/components/button"
 import {
   SidebarInset,
   SidebarProvider,
@@ -15,35 +14,8 @@ import { LanguageMenu, ThemeMenu } from "@workspace/ui/components/settings-menu"
 import { AppSidebar } from "@/components/app-sidebar"
 import { PageBreadcrumb } from "@/components/page-breadcrumb"
 
-function AccessRequired() {
-  const { t } = useTranslation()
-  const clear = useAuthStore((state) => state.clear)
-
-  return (
-    <div className="flex min-h-svh flex-col items-center justify-center gap-6 p-6">
-      <div className="flex max-w-md flex-col gap-4 text-center">
-        <h1 className="font-heading text-2xl font-semibold">
-          {t("admin.access.title")}
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          {t("admin.access.description")}
-        </p>
-        <div className="flex justify-center">
-          <Button
-            onClick={() => {
-              clear()
-              window.location.href = webLoginUrl(currentUrl())
-            }}
-          >
-            {t("admin.access.switchAccount")}
-          </Button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
 export function AppShell({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname()
   const user = useAuthStore((state) => state.user)
   const [ready, setReady] = React.useState(false)
 
@@ -51,21 +23,28 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     setReady(true)
   }, [])
 
-  // Signed out: bounce to the shared login on the web app, returning here after.
+  // The home page (`/`) is public: it shows a landing hero when signed out.
+  // Every other route is protected and bounces to the shared web login.
+  const isPublic = pathname === "/"
+
   React.useEffect(() => {
-    if (ready && !user) {
+    if (ready && !user && !isPublic) {
       window.location.href = webLoginUrl(currentUrl())
     }
-  }, [ready, user])
+  }, [ready, user, isPublic])
 
-  // Wait for hydration, and while redirecting an unauthenticated visitor.
-  if (!ready || !user) {
-    return null
+  // Render the bare page (no sidebar) on the landing home until we know the
+  // user is signed in. Gating the home on hydration avoids briefly flashing
+  // the sidebar chrome before the persisted store is read on the client.
+  const chromeless = pathname === "/" && (!ready || !user)
+
+  if (chromeless) {
+    return <>{children}</>
   }
 
-  // Signed in but not an admin: no console access.
-  if (user.role !== "admin") {
-    return <AccessRequired />
+  // Block protected content until we know the user is signed in.
+  if (!ready || (!user && !isPublic)) {
+    return null
   }
 
   return (

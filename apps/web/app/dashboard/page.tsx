@@ -1,62 +1,21 @@
-"use client"
+import { ChartAreaInteractive } from "@/components/dashboard/chart-area-interactive"
+import { DataTable } from "@/components/dashboard/data-table"
+import { SectionCards } from "@/components/dashboard/section-cards"
 
-import * as React from "react"
-import { useRouter } from "next/navigation"
-import { useTranslation } from "@workspace/i18n"
-import { Button } from "@workspace/ui/components/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/card"
-
-import { useAuthStore } from "@/lib/auth-store"
+import data from "./data.json"
 
 export default function DashboardPage() {
-  const router = useRouter()
-  const { t } = useTranslation()
-  const user = useAuthStore((state) => state.user)
-  const clear = useAuthStore((state) => state.clear)
-  const [ready, setReady] = React.useState(false)
-
-  React.useEffect(() => {
-    setReady(true)
-  }, [])
-
-  React.useEffect(() => {
-    if (ready && !user) {
-      router.replace("/login")
-    }
-  }, [ready, user, router])
-
-  if (!ready || !user) {
-    return null
-  }
-
   return (
-    <div className="flex min-h-svh items-center justify-center p-6">
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle>{t("web.dashboard.welcome", { name: user.name })}</CardTitle>
-          <CardDescription>{user.email}</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-3">
-          <p className="text-xs text-muted-foreground">
-            {t("web.dashboard.role", { role: user.role })}
-          </p>
-          <Button
-            variant="outline"
-            onClick={() => {
-              clear()
-              router.push("/login")
-            }}
-          >
-            {t("web.dashboard.signOut")}
-          </Button>
-        </CardContent>
-      </Card>
+    <div className="flex flex-1 flex-col">
+      <div className="@container/main flex flex-1 flex-col gap-2">
+        <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+          <SectionCards />
+          <div className="px-4 lg:px-6">
+            <ChartAreaInteractive />
+          </div>
+          <DataTable data={data} />
+        </div>
+      </div>
     </div>
   )
 }

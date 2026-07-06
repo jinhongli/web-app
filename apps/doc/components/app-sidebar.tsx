@@ -7,11 +7,14 @@ import {
   IconChevronRight,
   IconDatabase,
   IconFileText,
+  IconLogout,
 } from "@tabler/icons-react"
+import { currentUrl, useAuthStore, webLoginUrl } from "@workspace/auth"
 import { useTranslation, type TranslationKey } from "@workspace/i18n"
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarHeader,
@@ -60,6 +63,7 @@ function isItemActive(pathname: string, href: string) {
 export function AppSidebar() {
   const pathname = usePathname()
   const { t } = useTranslation()
+  const clear = useAuthStore((state) => state.clear)
 
   return (
     <Sidebar variant="inset" collapsible="icon">
@@ -123,6 +127,22 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              tooltip={t("doc.nav.signOut")}
+              onClick={() => {
+                clear()
+                window.location.href = webLoginUrl(currentUrl())
+              }}
+            >
+              <IconLogout />
+              <span>{t("doc.nav.signOut")}</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
     </Sidebar>
   )
 }

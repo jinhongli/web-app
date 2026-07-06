@@ -1,8 +1,11 @@
 "use client"
 
+import * as React from "react"
 import Link from "next/link"
 import { IconDatabase, IconFileText } from "@tabler/icons-react"
+import { currentUrl, useAuthStore, webLoginUrl } from "@workspace/auth"
 import { useTranslation } from "@workspace/i18n"
+import { Button } from "@workspace/ui/components/button"
 import {
   Card,
   CardDescription,
@@ -12,6 +15,40 @@ import {
 
 export default function Page() {
   const { t } = useTranslation()
+  const user = useAuthStore((state) => state.user)
+  const [ready, setReady] = React.useState(false)
+
+  React.useEffect(() => {
+    setReady(true)
+  }, [])
+
+  if (!ready) {
+    return null
+  }
+
+  if (!user) {
+    return (
+      <div className="flex min-h-svh flex-col items-center justify-center gap-6 p-6">
+        <div className="flex max-w-md flex-col gap-4 text-center">
+          <h1 className="font-heading text-2xl font-semibold">
+            {t("doc.landing.title")}
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            {t("doc.landing.description")}
+          </p>
+          <div className="flex justify-center">
+            <Button
+              onClick={() => {
+                window.location.href = webLoginUrl(currentUrl())
+              }}
+            >
+              {t("doc.landing.signIn")}
+            </Button>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 p-6">

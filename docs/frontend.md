@@ -10,34 +10,55 @@ shadcn's Base UI variant; icons are `@tabler/icons-react`.
 
 Public-facing site.
 
-- `/` — landing page with links to sign in / register
+- `/` — landing page with links to sign in / register; signed-in visitors are
+  redirected straight to `/dashboard`
 - `/login`, `/register` — forms validated with `@workspace/schemas`, submitted
-  through `@workspace/apis`; tokens saved to the auth store
-- `/dashboard` — authenticated view; redirects to `/login` when signed out
+  through `@workspace/apis`; tokens saved to the shared auth store. This is the
+  single SSO entry point for all three apps: after sign-in the form honors a
+  `?next=<url>` param (validated by `isAllowedRedirect`) to return the visitor to
+  the app they came from (both wrapped in `<Suspense>` for `useSearchParams`).
+- `/dashboard` — authenticated dashboard (redirects to `/login` when signed
+  out). Ported from shadcn's `dashboard-01` block: an offcanvas
+  `AppSidebar` + `SiteHeader` shell (`app/dashboard/layout.tsx` holds the guard),
+  with `SectionCards`, an interactive `recharts` area chart
+  (`ChartAreaInteractive`), and a `@tanstack/react-table` + `@dnd-kit` data table
+  (`DataTable`, drag-to-reorder / column visibility / pagination / row drawer).
+  Components live in `components/dashboard/`; framework copy goes through
+  `@workspace/i18n` while the sample rows in `app/dashboard/data.json` stay
+  hardcoded. The global settings menu is hidden on this route
+  (`components/global-settings.tsx`) since the header carries its own controls.
 
 ### admin (`apps/admin`, :3001)
 
-Admin console (login restricted to `admin` role). Uses the collapsible-icon
-sidebar layout (`components/app-shell.tsx` + `components/app-sidebar.tsx`); the
-sidebar is hidden on `/login`. The inset header carries the sidebar trigger, a
-route breadcrumb (`components/page-breadcrumb.tsx`), and the language/theme
-controls; sign-out lives in the sidebar footer.
+Admin console (restricted to the `admin` role). Uses the collapsible-icon
+sidebar layout (`components/app-shell.tsx` + `components/app-sidebar.tsx`).
+`AppShell` is the auth gate: it bounces signed-out visitors to the shared web
+login (`webLoginUrl(currentUrl())`), and renders an "access required" screen for
+signed-in non-admins. The inset header carries the sidebar trigger, a route
+breadcrumb (`components/page-breadcrumb.tsx`), and the language/theme controls;
+sign-out lives in the sidebar footer (clears the shared session, then redirects
+to the web login).
 
-- `/` — redirects to `/users`
-- `/login` — rejects non-admin accounts (no sidebar)
-- `/users` — paginated user table; toggle a user's role via `PATCH /api/users/:id`
+- `/` — signed-in home: an intro + section cards (like doc). Signed-out visitors
+  are redirected to the web login by `AppShell`.
+- `/users` — paginated user table; toggle a user's role via `PATCH /api/users/:id`.
+  A `401` (expired/invalid session) clears the shared session and redirects to the
+  web login.
 
 ### doc (`apps/doc`, :3002)
 
-Documentation site with a collapsible-icon sidebar
-(`components/app-sidebar.tsx`) whose two groups expand into submenus. The inset
+Documentation site. Uses a collapsible-icon sidebar
+(`components/app-sidebar.tsx`, sign-out in the footer) wrapped in
+`components/app-shell.tsx`, which hides the chrome on the signed-out landing home
+and redirects protected routes to the shared web login when signed out. The inset
 header carries the sidebar trigger, a route breadcrumb
 (`components/page-breadcrumb.tsx`), and the language/theme controls. Page modules
 are extracted into reusable components (`components/schema-modules.tsx`,
 `components/api-reference.tsx`) so each route renders one module, and each page's
 title matches its nav leaf.
 
-- `/` — overview / description with links into the two sections
+- `/` — public home: landing hero with a sign-in button when signed out, or the
+  section-card overview when signed in
 - `/schema` — ER diagram (submenu: Database Schema › ER Diagram)
 - `/schema/users` — users table + indexes (Database Schema › Users)
 - `/api/auth` — auth endpoints (API Reference › Auth)
@@ -85,9 +106,21 @@ shows its label in a tooltip when collapsed. For nested navigation, wrap items
 in `SidebarMenuCollapsible` / `SidebarMenuCollapsibleTrigger` /
 `SidebarMenuCollapsiblePanel` (a thin wrapper over Base UI `Collapsible`, so
 apps don't import Base UI directly) with `SidebarMenuSub`/`SidebarMenuSubItem`/
-`SidebarMenuSubButton` inside. doc uses it in `components/app-sidebar.tsx`;
-admin adds a conditional `components/app-shell.tsx` so `/login` renders without
-a sidebar.
+`SidebarMenuSubButton` inside. `SidebarMenuAction` renders a hover/focus action
+button (e.g. a row's `⋯` menu trigger) positioned inside a `SidebarMenuItem`.
+doc uses the sidebar in `components/app-sidebar.tsx`; admin wraps it in
+`components/app-shell.tsx`, which acts as the auth gate (redirect signed-out to
+the web login, "access required" for non-admins) rather than rendering the
+sidebar; web's `/dashboard` uses `variant="inset"` + `collapsible="offcanvas"`
+with the nav split into `components/dashboard/nav-*.tsx`.
+
+### @workspace/auth
+
+The shared SSO session. Exports a single cookie-persisted zustand `useAuthStore`
+(so web / admin / doc read the same session — see
+[architecture.md](architecture.md)), the origin/cookie `config`, and URL helpers
+(`webLoginUrl`, `currentUrl`, `isAllowedRedirect`). Apps re-export the store from
+their `lib/auth-store.ts` and import the helpers directly from `@workspace/auth`.
 
 ### @workspace/schemas
 
@@ -140,24 +173,32 @@ localStorage (`app-locale`) and keeps `<html lang>` in sync.
 language + color-mode state (`next-themes`):
 
 - `SettingsMenu` — one icon button opening a combined language + theme menu; used
-  by web (fixed top-right).
+  by web (fixed top-right, hidden on `/dashboard`).
 - `LanguageMenu` — icon-only button opening just the language picker
   (English / 中文).
 - `ThemeMenu` — icon-only button that cycles light → dark → system on click, with
   the icon reflecting the current mode (sun / moon-stars / brightness).
 
 admin and doc place `LanguageMenu` + `ThemeMenu` at the right of the inset
-header.
+header, as does web's `/dashboard` (`components/dashboard/site-header.tsx`).
 
 ## State management
 
-Auth state uses a zustand store persisted to localStorage, one per app:
+Auth state lives in one shared zustand store, `@workspace/auth`, persisted to a
+**cookie** (not localStorage) so a single session is shared across all three
+apps — this is what makes SSO work. Each app re-exports it verbatim:
 
-- `apps/web/lib/auth-store.ts` — persist key `web-auth`
-- `apps/admin/lib/auth-store.ts` — persist key `admin-auth`
+- `apps/web/lib/auth-store.ts`
+- `apps/admin/lib/auth-store.ts`
+- `apps/doc/lib/auth-store.ts`
 
-It holds `user` + `tokens` with `setAuth` / `setTokens` / `clear`. Protected
-pages read the store on the client and redirect to `/login` when empty.
+all just `export { useAuthStore } from "@workspace/auth"`. See
+[architecture.md](architecture.md) for the SSO flow and cookie/config details.
+
+The store holds `user` + `tokens` with `setAuth` / `setTokens` / `clear`.
+Protected pages read the store on the client; when empty they redirect to the
+shared web login via `webLoginUrl(currentUrl())`, which returns the visitor to
+their origin after sign-in.
 
 ## Conventions
 
@@ -181,3 +222,9 @@ pnpm --filter doc dev      # :3002
 Point the frontends at a running backend with
 `NEXT_PUBLIC_API_BASE_URL=http://localhost:8080`. Dev servers auto-fall back to
 the next free port if the default is taken.
+
+SSO needs each app to know the others' public origins. The defaults match the
+dev ports, so no config is required locally; override via
+`NEXT_PUBLIC_{WEB,ADMIN,DOC}_URL` and the cookie
+(`NEXT_PUBLIC_AUTH_COOKIE_NAME` / `NEXT_PUBLIC_AUTH_COOKIE_DOMAIN`) in production.
+See each app's `.env.example` and [architecture.md](architecture.md).

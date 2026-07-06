@@ -1,8 +1,8 @@
 "use client"
 
 import * as React from "react"
-import { useRouter } from "next/navigation"
 import { ApiRequestError, getUsers, updateUser } from "@workspace/apis"
+import { currentUrl, useAuthStore, webLoginUrl } from "@workspace/auth"
 import type { User, UserRole } from "@workspace/schemas"
 import { useTranslation } from "@workspace/i18n"
 import { Badge } from "@workspace/ui/components/badge"
@@ -18,12 +18,10 @@ import {
 import { toast } from "@workspace/ui/components/sonner"
 import { formatDateTime } from "@workspace/utils"
 
-import { useAuthStore } from "@/lib/auth-store"
-
 export function UsersTable() {
-  const router = useRouter()
   const { t } = useTranslation()
   const tokens = useAuthStore((state) => state.tokens)
+  const clear = useAuthStore((state) => state.clear)
   const [ready, setReady] = React.useState(false)
   const [users, setUsers] = React.useState<User[]>([])
   const [loading, setLoading] = React.useState(true)
@@ -34,9 +32,21 @@ export function UsersTable() {
 
   React.useEffect(() => {
     if (ready && !tokens) {
-      router.replace("/login")
+      window.location.href = webLoginUrl(currentUrl())
     }
-  }, [ready, tokens, router])
+  }, [ready, tokens])
+
+  const handleExpiredSession = React.useCallback(
+    (error: unknown) => {
+      if (error instanceof ApiRequestError && error.status === 401) {
+        clear()
+        window.location.href = webLoginUrl(currentUrl())
+        return true
+      }
+      return false
+    },
+    [clear]
+  )
 
   const load = React.useCallback(async () => {
     if (!tokens) return
@@ -45,13 +55,14 @@ export function UsersTable() {
       const page = await getUsers(tokens.accessToken, { page: 1, pageSize: 50 })
       setUsers(page.items)
     } catch (error) {
+      if (handleExpiredSession(error)) return
       const message =
         error instanceof ApiRequestError ? error.message : t("admin.users.loadFailed")
       toast.error(message)
     } finally {
       setLoading(false)
     }
-  }, [tokens, t])
+  }, [tokens, t, handleExpiredSession])
 
   React.useEffect(() => {
     if (ready && tokens) {
@@ -69,6 +80,7 @@ export function UsersTable() {
       setUsers((prev) => prev.map((u) => (u.id === updated.id ? updated : u)))
       toast.success(t("admin.users.updated", { name: updated.name }))
     } catch (error) {
+      if (handleExpiredSession(error)) return
       const message =
         error instanceof ApiRequestError ? error.message : t("admin.users.updateFailed")
       toast.error(message)

@@ -1,9 +1,10 @@
 "use client"
 
 import * as React from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { ApiRequestError, register } from "@workspace/apis"
+import { isAllowedRedirect } from "@workspace/auth"
 import { registerSchema } from "@workspace/schemas"
 import { useTranslation } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
@@ -23,9 +24,23 @@ import { useAuthStore } from "@/lib/auth-store"
 
 export function RegisterForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { t } = useTranslation()
   const setAuth = useAuthStore((state) => state.setAuth)
   const [pending, setPending] = React.useState(false)
+
+  function redirectAfterAuth() {
+    const next = searchParams.get("next")
+    if (next && isAllowedRedirect(next)) {
+      if (next.startsWith("http")) {
+        window.location.href = next
+      } else {
+        router.push(next)
+      }
+      return
+    }
+    router.push("/dashboard")
+  }
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -46,7 +61,7 @@ export function RegisterForm() {
       const result = await register(parsed.data)
       setAuth(result.user, result.tokens)
       toast.success(t("web.register.accountCreated"))
-      router.push("/dashboard")
+      redirectAfterAuth()
     } catch (error) {
       const message =
         error instanceof ApiRequestError

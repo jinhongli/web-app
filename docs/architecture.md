@@ -16,6 +16,7 @@ packages/
   utils/              @workspace/utils     framework-agnostic helpers
   apis/               @workspace/apis      typed HTTP client
   schemas/            @workspace/schemas   zod schemas + inferred types
+  auth/               @workspace/auth      shared cookie-backed SSO session
   i18n/               @workspace/i18n      en/zh catalogs via react-i18next
   eslint-config/      @workspace/eslint-config      shared flat ESLint config
   typescript-config/  @workspace/typescript-config  shared tsconfig presets
@@ -33,12 +34,15 @@ apps/admin├─▶ @workspace/apis ─▶ @workspace/schemas
 apps/doc ─┘        │
                    ├─▶ @workspace/ui ─▶ @workspace/i18n
                    ├─▶ @workspace/i18n
+                   ├─▶ @workspace/auth ─▶ @workspace/schemas
                    └─▶ @workspace/utils
 apps/server (Go)  — independent module, no JS deps
 ```
 
 - Frontends depend on shared packages; shared packages never depend on apps.
 - `@workspace/apis` depends on `@workspace/schemas` (to validate payloads).
+- `@workspace/auth` depends on `@workspace/schemas` (for `User`/`Tokens` types)
+  and holds the one session all three apps share (see SSO below).
 - `@workspace/ui` depends on `@workspace/i18n` (the shared `SettingsMenu` reads
   translations), and `@workspace/i18n` is the only package that pulls in
   `i18next`/`react-i18next`, so everything shares one React context.
@@ -92,8 +96,37 @@ context.
    `/api/auth/login` and parses the response with `authResultSchema`.
 3. The Go server authenticates, signs a JWT access/refresh pair, and returns
    `{ user, tokens }`.
-4. The app stores the result in a persisted zustand store and routes to the
-   dashboard.
+4. The form saves the result to the shared `@workspace/auth` store (a cookie),
+   then routes to `?next=<url>` if present (else `/dashboard`).
+
+## Single sign-on across the three apps
+
+All three frontends share one session so a user signs in once. This is handled
+entirely on the client by `@workspace/auth`; the Go backend is unchanged (it
+still issues and validates JWTs per request).
+
+- **One session, in a cookie.** `useAuthStore` is a zustand store persisted to a
+  cookie (`src/store.ts`) rather than localStorage. Browsers key cookies by host,
+  not port, so a cookie set on `localhost` is visible to web (`:3000`), admin
+  (`:3001`), and doc (`:3002`) alike in dev. In production the apps live on
+  sibling subdomains and the cookie is scoped to the shared parent domain via
+  `NEXT_PUBLIC_AUTH_COOKIE_DOMAIN`. Each app's `lib/auth-store.ts` just
+  re-exports this store.
+- **One login screen.** The web app owns `/login` + `/register` (the single SSO
+  entry point). admin and doc have no login pages: when a signed-out visitor hits
+  a protected route, the app redirects to `webLoginUrl(currentUrl())` —
+  `WEB_URL/login?next=<the-page-they-wanted>`.
+- **Safe return.** After sign-in the web form reads `next` and redirects back,
+  but only if `isAllowedRedirect` accepts it (a relative path, or an absolute URL
+  on one of the known app origins in `ALLOWED_REDIRECT_ORIGINS`) — otherwise it
+  falls back to `/dashboard`. This blocks open-redirect abuse.
+- **Roles still enforced per app.** SSO only shares identity. admin's `AppShell`
+  additionally requires `user.role === "admin"` and shows an "access required"
+  screen otherwise; a `401` from any API call clears the shared session and
+  bounces to the web login.
+- **Config.** Origins and cookie settings come from `NEXT_PUBLIC_*` env vars
+  (`src/config.ts`), with dev-port defaults so nothing is required locally. See
+  each app's `.env.example`.
 
 ## Build system
 
