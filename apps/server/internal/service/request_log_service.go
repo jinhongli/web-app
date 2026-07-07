@@ -39,6 +39,12 @@ func NewRequestLogService(logs *repository.RequestLogRepository) *RequestLogServ
 // dropping the entry if the buffer is full so callers are never blocked. It
 // must never emit through slog, which would recurse back into this sink.
 func (s *RequestLogService) Write(_ context.Context, rec logger.Record) {
+	// Skip the log feature's own traffic so browsing logs doesn't generate
+	// more logs — otherwise each list/detail/chain call pollutes the table.
+	if isLogPath(rec.Path) {
+		return
+	}
+
 	entry := model.RequestLog{
 		ID:        uuid.NewString(),
 		TraceID:   rec.TraceID,
@@ -88,6 +94,12 @@ func toLogLevel(level string) model.LogLevel {
 	default:
 		return model.LogLevelInfo
 	}
+}
+
+// isLogPath reports whether a request path belongs to the log feature itself,
+// so its traffic can be excluded from the persisted logs.
+func isLogPath(path string) bool {
+	return path == "/api/logs" || strings.HasPrefix(path, "/api/logs/")
 }
 
 // LogPage is a paginated slice of request logs.

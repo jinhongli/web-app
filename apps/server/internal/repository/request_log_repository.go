@@ -68,6 +68,9 @@ func (r *RequestLogRepository) List(ctx context.Context, filter LogFilter, offse
 
 	build := func() *gorm.DB {
 		q := r.db.WithContext(ctx).Model(&model.RequestLog{})
+		// Never surface the log feature's own traffic (also excludes any such
+		// rows persisted before the sink began skipping them).
+		q = q.Where("path <> ? AND path NOT LIKE ?", "/api/logs", "/api/logs/%")
 		if filter.Keyword != "" {
 			like := "%" + filter.Keyword + "%"
 			q = q.Where(
