@@ -16,16 +16,18 @@ import (
 
 // Deps carries the dependencies required to build the router.
 type Deps struct {
-	Logger      *slog.Logger
-	TokenMgr    *auth.Manager
-	AuthService *service.AuthService
-	UserService *service.UserService
+	Logger            *slog.Logger
+	TokenMgr          *auth.Manager
+	AuthService       *service.AuthService
+	UserService       *service.UserService
+	RequestLogService *service.RequestLogService
 }
 
 // New builds the Gin engine with all routes and middleware.
 func New(deps Deps) *gin.Engine {
 	engine := gin.New()
 	engine.Use(gin.Recovery())
+	engine.Use(middleware.Tracing())
 	engine.Use(middleware.RequestLogger(deps.Logger))
 	engine.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},
@@ -37,6 +39,7 @@ func New(deps Deps) *gin.Engine {
 
 	authHandler := handler.NewAuthHandler(deps.AuthService)
 	userHandler := handler.NewUserHandler(deps.UserService)
+	logHandler := handler.NewRequestLogHandler(deps.RequestLogService)
 
 	engine.GET("/healthz", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
@@ -58,6 +61,14 @@ func New(deps Deps) *gin.Engine {
 			users.GET("", middleware.RequireAdmin(), userHandler.List)
 			users.GET("/:id", middleware.RequireAdmin(), userHandler.Get)
 			users.PATCH("/:id", middleware.RequireAdmin(), userHandler.Update)
+		}
+
+		logs := api.Group("/logs")
+		logs.Use(middleware.Auth(deps.TokenMgr))
+		{
+			logs.GET("", middleware.RequireAdmin(), logHandler.List)
+			logs.GET("/:id", middleware.RequireAdmin(), logHandler.Get)
+			logs.GET("/:id/chain", middleware.RequireAdmin(), logHandler.Chain)
 		}
 	}
 

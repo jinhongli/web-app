@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"log/slog"
 
 	"github.com/web-app/server/internal/model"
 	"github.com/web-app/server/internal/repository"
@@ -48,6 +49,11 @@ func (s *UserService) List(ctx context.Context, page, pageSize int) (*Page, erro
 	if err != nil {
 		return nil, err
 	}
+	slog.InfoContext(ctx, "user.list",
+		slog.Int("page", page),
+		slog.Int("pageSize", pageSize),
+		slog.Int64("total", total),
+	)
 	return &Page{Items: items, Total: total, Page: page, PageSize: pageSize}, nil
 }
 
@@ -75,5 +81,6 @@ func (s *UserService) Update(ctx context.Context, id string, input UpdateInput) 
 	if err := s.users.Update(ctx, user); err != nil {
 		return nil, err
 	}
+	slog.InfoContext(ctx, "user.updated", slog.String("targetUserId", id))
 	return user, nil
 }

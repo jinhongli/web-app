@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"log/slog"
 
 	"github.com/google/uuid"
 
@@ -52,6 +53,7 @@ func (s *AuthService) Register(ctx context.Context, email, name, password string
 		return nil, err
 	}
 
+	slog.InfoContext(ctx, "auth.register.success", slog.String("userId", user.ID))
 	return s.issue(user)
 }
 
@@ -67,6 +69,7 @@ func (s *AuthService) Login(ctx context.Context, email, password string) (*AuthR
 	if !auth.CheckPassword(user.PasswordHash, password) {
 		return nil, ErrInvalidCredentials
 	}
+	slog.InfoContext(ctx, "auth.login.success", slog.String("userId", user.ID))
 	return s.issue(user)
 }
 

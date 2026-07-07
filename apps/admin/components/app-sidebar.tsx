@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { IconShieldLock, IconUsers } from "@tabler/icons-react"
+import { IconListDetails, IconShieldLock, IconUsers } from "@tabler/icons-react"
 import { currentUrl, useAuthStore, webLoginUrl } from "@workspace/auth"
 import { useTranslation } from "@workspace/i18n"
 import { AppSidebar as ViewsAppSidebar } from "@workspace/views/app-sidebar"
@@ -23,6 +23,12 @@ export function AppSidebar() {
           url: "/users",
           icon: IconUsers,
           isActive: pathname.startsWith("/users"),
+        },
+        {
+          title: t("admin.nav.logs"),
+          url: "/logs",
+          icon: IconListDetails,
+          isActive: pathname.startsWith("/logs"),
         },
       ],
     },

@@ -45,6 +45,13 @@ language/theme controls; sign-out lives in the sidebar footer's avatar dropdown
 - `/users` — paginated user table; toggle a user's role via `PATCH /api/users/:id`.
   A `401` (expired/invalid session) clears the shared session and redirects to the
   web login.
+- `/logs` — request-log explorer (`app/logs/logs-view.tsx`). Filters by keyword
+  (matches message/path and exact log id / trace id), user (searchable
+  `Combobox`), level, and date range (`Popover` + range `Calendar`); server-side
+  paginated `@tanstack/react-table` (`manualPagination`) over `GET /api/logs`. A
+  row's "view details" opens a `Drawer` showing the full entry plus its call
+  chain — every log sharing that trace id, oldest first, from
+  `GET /api/logs/:id/chain`.
 
 ### doc (`apps/doc`, :3002)
 

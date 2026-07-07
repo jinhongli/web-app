@@ -12,6 +12,7 @@ import {
 
 const trails: Record<string, TranslationKey[]> = {
   "/users": ["admin.nav.users"],
+  "/logs": ["admin.nav.logs"],
 }
 
 export function PageBreadcrumb() {

@@ -11,4 +11,6 @@ var (
 	ErrUserNotFound = errors.New("user not found")
 	// ErrForbidden is returned when an action is not permitted.
 	ErrForbidden = errors.New("forbidden")
+	// ErrLogNotFound is returned when a log lookup fails.
+	ErrLogNotFound = errors.New("log not found")
 )

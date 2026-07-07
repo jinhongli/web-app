@@ -25,14 +25,20 @@ func main() {
 
 	tokenMgr := auth.NewManager(cfg.JWTSecret, cfg.AccessTokenTTL, cfg.RefreshTokenTTL)
 	userRepo := repository.NewUserRepository(db)
+	logRepo := repository.NewRequestLogRepository(db)
 	authService := service.NewAuthService(userRepo, tokenMgr)
 	userService := service.NewUserService(userRepo)
+	logService := service.NewRequestLogService(logRepo)
+
+	// Swap in the persisting logger now that the sink is available.
+	log = logger.NewWithSink(cfg.Env, logService)
 
 	engine := router.New(router.Deps{
-		Logger:      log,
-		TokenMgr:    tokenMgr,
-		AuthService: authService,
-		UserService: userService,
+		Logger:            log,
+		TokenMgr:          tokenMgr,
+		AuthService:       authService,
+		UserService:       userService,
+		RequestLogService: logService,
 	})
 
 	addr := ":" + cfg.Port

@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"log/slog"
 	"net/http"
 	"strings"
 
@@ -8,6 +9,7 @@ import (
 
 	"github.com/web-app/server/internal/auth"
 	"github.com/web-app/server/internal/model"
+	"github.com/web-app/server/internal/reqctx"
 )
 
 const (
@@ -15,6 +17,8 @@ const (
 	ContextUserID = "userID"
 	// ContextUserRole is the gin context key for the authenticated user role.
 	ContextUserRole = "userRole"
+	// ContextTraceID is the gin context key for the request trace id.
+	ContextTraceID = "traceID"
 )
 
 // Auth returns middleware that validates the bearer access token.
@@ -41,6 +45,11 @@ func Auth(manager *auth.Manager) gin.HandlerFunc {
 
 		c.Set(ContextUserID, claims.UserID)
 		c.Set(ContextUserRole, claims.Role)
+
+		ctx := reqctx.WithUserID(c.Request.Context(), claims.UserID)
+		c.Request = c.Request.WithContext(ctx)
+		slog.InfoContext(ctx, "auth.authorized", slog.String("role", string(claims.Role)))
+
 		c.Next()
 	}
 }
