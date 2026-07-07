@@ -73,9 +73,11 @@ func (r *RequestLogRepository) List(ctx context.Context, filter LogFilter, offse
 		q = q.Where("path <> ? AND path NOT LIKE ?", "/api/logs", "/api/logs/%")
 		if filter.Keyword != "" {
 			like := "%" + filter.Keyword + "%"
+			// Keyword also matches the acting user's name, resolved through the
+			// users table since logs only persist the user id.
 			q = q.Where(
-				"message ILIKE ? OR path ILIKE ? OR id::text = ? OR trace_id::text = ?",
-				like, like, filter.Keyword, filter.Keyword,
+				"message ILIKE ? OR path ILIKE ? OR id::text = ? OR trace_id::text = ? OR user_id IN (SELECT id::text FROM users WHERE name ILIKE ?)",
+				like, like, filter.Keyword, filter.Keyword, like,
 			)
 		}
 		if filter.UserID != "" {

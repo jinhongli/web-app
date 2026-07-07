@@ -7,6 +7,8 @@ import {
   IconChevronsLeft,
   IconChevronsRight,
   IconCalendar,
+  IconFilter,
+  IconRefresh,
 } from "@tabler/icons-react"
 import {
   flexRender,
@@ -24,13 +26,15 @@ import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Calendar } from "@workspace/ui/components/calendar"
 import {
-  Combobox,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxInput,
-  ComboboxItem,
-  ComboboxList,
-} from "@workspace/ui/components/combobox"
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from "@workspace/ui/components/dropdown-menu"
 import {
   Drawer,
   DrawerClose,
@@ -63,9 +67,6 @@ import {
   TableRow,
 } from "@workspace/ui/components/table"
 import { toast } from "@workspace/ui/components/sonner"
-import { formatDateTime } from "@workspace/utils"
-
-type UserOption = { value: string; label: string }
 
 const LEVEL_ALL = "all"
 const LEVELS: LogLevel[] = ["debug", "info", "warn", "error"]
@@ -95,6 +96,32 @@ function endOfDayISO(date: Date): string {
   return d.toISOString()
 }
 
+// The date-range filter defaults to the last 7 days (inclusive of today).
+function defaultRange(): DateRange {
+  const to = new Date()
+  const from = new Date()
+  from.setDate(from.getDate() - 6)
+  return { from, to }
+}
+
+function formatDateYMD(date: Date): string {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, "0")
+  const day = String(date.getDate()).padStart(2, "0")
+  return `${year}-${month}-${day}`
+}
+
+function formatTimestamp(value: string | number | Date): string {
+  const date = value instanceof Date ? value : new Date(value)
+  if (Number.isNaN(date.getTime())) {
+    return "-"
+  }
+  const hours = String(date.getHours()).padStart(2, "0")
+  const minutes = String(date.getMinutes()).padStart(2, "0")
+  const seconds = String(date.getSeconds()).padStart(2, "0")
+  return `${formatDateYMD(date)} ${hours}:${minutes}:${seconds}`
+}
+
 export function LogsView() {
   const { t } = useTranslation()
   const tokens = useAuthStore((state) => state.tokens)
@@ -108,10 +135,9 @@ export function LogsView() {
   // Filters.
   const [keyword, setKeyword] = React.useState("")
   const [debouncedKeyword, setDebouncedKeyword] = React.useState("")
-  const [userOptions, setUserOptions] = React.useState<UserOption[]>([])
-  const [selectedUser, setSelectedUser] = React.useState<UserOption | null>(null)
+  const [userNames, setUserNames] = React.useState<Record<string, string>>({})
   const [level, setLevel] = React.useState<string>(LEVEL_ALL)
-  const [range, setRange] = React.useState<DateRange | undefined>(undefined)
+  const [range, setRange] = React.useState<DateRange | undefined>(defaultRange)
 
   // Pagination.
   const [page, setPage] = React.useState(1)
@@ -152,7 +178,7 @@ export function LogsView() {
   // Reset to first page whenever a filter changes.
   React.useEffect(() => {
     setPage(1)
-  }, [debouncedKeyword, selectedUser, level, range?.from, range?.to, pageSize])
+  }, [debouncedKeyword, level, range?.from, range?.to, pageSize])
 
   const load = React.useCallback(async () => {
     if (!tokens) return
@@ -162,7 +188,6 @@ export function LogsView() {
         page,
         pageSize,
         keyword: debouncedKeyword || undefined,
-        userId: selectedUser?.value || undefined,
         level: level === LEVEL_ALL ? undefined : (level as LogLevel),
         from: range?.from ? startOfDayISO(range.from) : undefined,
         to: range?.to ? endOfDayISO(range.to) : undefined,
@@ -184,7 +209,6 @@ export function LogsView() {
     page,
     pageSize,
     debouncedKeyword,
-    selectedUser,
     level,
     range?.from,
     range?.to,
@@ -198,7 +222,7 @@ export function LogsView() {
     }
   }, [ready, tokens, load])
 
-  // Load the user list once for the user filter.
+  // Load the user list once to resolve user ids to display names.
   React.useEffect(() => {
     if (!ready || !tokens) return
     let cancelled = false
@@ -206,12 +230,12 @@ export function LogsView() {
       try {
         const result = await getUsers(tokens.accessToken, { pageSize: 100 })
         if (cancelled) return
-        setUserOptions(
-          result.items.map((u) => ({ value: u.id, label: `${u.name} (${u.email})` }))
+        setUserNames(
+          Object.fromEntries(result.items.map((u) => [u.id, u.name]))
         )
       } catch (error) {
         if (handleExpiredSession(error)) return
-        // The user filter is optional; surface but don't block the page.
+        // Name resolution is optional; surface but don't block the page.
       }
     })()
     return () => {
@@ -242,6 +266,11 @@ export function LogsView() {
     [tokens, handleExpiredSession, t]
   )
 
+  const displayUser = React.useCallback(
+    (userId: string) => (userId ? userNames[userId] ?? userId : ""),
+    [userNames]
+  )
+
   const columns = React.useMemo<ColumnDef<RequestLog>[]>(
     () => [
       {
@@ -249,7 +278,7 @@ export function LogsView() {
         header: t("admin.logs.colTime"),
         cell: ({ row }) => (
           <span className="whitespace-nowrap">
-            {formatDateTime(row.original.createdAt)}
+            {formatTimestamp(row.original.createdAt)}
           </span>
         ),
       },
@@ -273,7 +302,12 @@ export function LogsView() {
         accessorKey: "path",
         header: t("admin.logs.colPath"),
         cell: ({ row }) => (
-          <span className="font-mono text-xs">{row.original.path || "—"}</span>
+          <span
+            className="block min-w-[320px] max-w-[520px] truncate font-mono text-xs"
+            title={row.original.path}
+          >
+            {row.original.path || "—"}
+          </span>
         ),
       },
       {
@@ -285,11 +319,17 @@ export function LogsView() {
       {
         accessorKey: "userId",
         header: t("admin.logs.colUser"),
-        cell: ({ row }) => (
-          <span className="font-mono text-xs">
-            {row.original.userId || "—"}
-          </span>
-        ),
+        cell: ({ row }) => {
+          const name = displayUser(row.original.userId)
+          return (
+            <span
+              className="block max-w-[160px] truncate"
+              title={row.original.userId}
+            >
+              {name || "—"}
+            </span>
+          )
+        },
       },
       {
         id: "actions",
@@ -309,7 +349,7 @@ export function LogsView() {
         ),
       },
     ],
-    [t, openDetail]
+    [t, openDetail, displayUser]
   )
 
   const pageCount = Math.max(1, Math.ceil(total / pageSize))
@@ -326,17 +366,18 @@ export function LogsView() {
   const canPrevious = page > 1
   const canNext = page < pageCount
 
+  // Clearable filters exclude the date range, per requirement.
+  const hasActiveFilters = keyword.trim() !== "" || level !== LEVEL_ALL
+
   function resetFilters() {
     setKeyword("")
-    setSelectedUser(null)
     setLevel(LEVEL_ALL)
-    setRange(undefined)
   }
 
   const rangeLabel = range?.from
     ? range.to
-      ? `${formatDateTime(range.from)} – ${formatDateTime(range.to)}`
-      : formatDateTime(range.from)
+      ? `${formatDateYMD(range.from)} – ${formatDateYMD(range.to)}`
+      : formatDateYMD(range.from)
     : t("admin.logs.filterDateRangeAll")
 
   if (!ready || !tokens) {
@@ -344,7 +385,7 @@ export function LogsView() {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 p-6">
+    <div className="mx-auto flex w-full min-w-0 max-w-6xl flex-col gap-4 p-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-heading text-lg font-semibold">
@@ -354,9 +395,6 @@ export function LogsView() {
             {t("admin.logs.description")}
           </p>
         </div>
-        <Button variant="outline" size="sm" onClick={() => void load()}>
-          {t("admin.logs.refresh")}
-        </Button>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
@@ -367,70 +405,84 @@ export function LogsView() {
           onChange={(e) => setKeyword(e.target.value)}
         />
 
-        <Combobox
-          items={userOptions}
-          value={selectedUser}
-          onValueChange={(value) => setSelectedUser(value as UserOption | null)}
-        >
-          <ComboboxInput
-            className="w-56"
-            placeholder={t("admin.logs.filterUserPlaceholder")}
-            showClear
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <Button variant="outline" size="default">
+                <IconFilter />
+                {t("admin.logs.moreFilters")}
+              </Button>
+            }
           />
-          <ComboboxContent>
-            <ComboboxEmpty>{t("admin.logs.filterUserEmpty")}</ComboboxEmpty>
-            <ComboboxList>
-              {(user: UserOption) => (
-                <ComboboxItem key={user.value} value={user}>
-                  {user.label}
-                </ComboboxItem>
-              )}
-            </ComboboxList>
-          </ComboboxContent>
-        </Combobox>
+          <DropdownMenuContent align="start" className="w-48">
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>
+                {t("admin.logs.filterLevel")}
+                <span className="ml-auto text-xs text-muted-foreground">
+                  {level === LEVEL_ALL ? t("admin.logs.filterLevelAll") : level}
+                </span>
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent>
+                <DropdownMenuRadioGroup
+                  value={level}
+                  onValueChange={(value) => setLevel(value as string)}
+                >
+                  <DropdownMenuRadioItem value={LEVEL_ALL}>
+                    {t("admin.logs.filterLevelAll")}
+                  </DropdownMenuRadioItem>
+                  {LEVELS.map((lvl) => (
+                    <DropdownMenuRadioItem key={lvl} value={lvl}>
+                      {lvl}
+                    </DropdownMenuRadioItem>
+                  ))}
+                </DropdownMenuRadioGroup>
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
+          </DropdownMenuContent>
+        </DropdownMenu>
 
-        <Select value={level} onValueChange={(value) => setLevel(value as string)}>
-          <SelectTrigger size="sm" className="w-32">
-            <SelectValue placeholder={t("admin.logs.filterLevelAll")} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={LEVEL_ALL}>
-              {t("admin.logs.filterLevelAll")}
-            </SelectItem>
-            {LEVELS.map((lvl) => (
-              <SelectItem key={lvl} value={lvl}>
-                {lvl}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <Button
+          variant="ghost"
+          size="default"
+          onClick={resetFilters}
+          disabled={!hasActiveFilters}
+        >
+          {t("admin.logs.clear")}
+        </Button>
 
         <Popover>
           <PopoverTrigger
             render={
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="default" className="ml-auto">
                 <IconCalendar />
                 <span className="max-w-56 truncate">{rangeLabel}</span>
               </Button>
             }
           />
-          <PopoverContent className="w-auto p-0" align="start">
+          <PopoverContent className="w-auto p-0" align="end">
             <Calendar
               mode="range"
               selected={range}
               onSelect={setRange}
               numberOfMonths={2}
+              disabled={{ after: new Date() }}
             />
           </PopoverContent>
         </Popover>
 
-        <Button variant="ghost" size="sm" onClick={resetFilters}>
-          {t("admin.logs.reset")}
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => void load()}
+          aria-label={t("admin.logs.refresh")}
+          title={t("admin.logs.refresh")}
+        >
+          <IconRefresh />
         </Button>
       </div>
 
-      <div className="overflow-hidden rounded-lg border">
-        <Table>
+      <div className="w-full min-w-0 overflow-x-auto rounded-lg border">
+        <Table className="w-max min-w-full">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
@@ -575,7 +627,7 @@ export function LogsView() {
 
           <div className="flex flex-col gap-6 overflow-y-auto px-4 pb-4 text-sm">
             {detailLog && (
-              <LogDetail log={detailLog} t={t} />
+              <LogDetail log={detailLog} t={t} displayUser={displayUser} />
             )}
 
             <div className="flex flex-col gap-2">
@@ -621,7 +673,15 @@ function DetailRow({ label, value }: { label: string; value: React.ReactNode }) 
   )
 }
 
-function LogDetail({ log, t }: { log: RequestLog; t: TFn }) {
+function LogDetail({
+  log,
+  t,
+  displayUser,
+}: {
+  log: RequestLog
+  t: TFn
+  displayUser: (userId: string) => string
+}) {
   const none = t("admin.logs.none")
   return (
     <div className="flex flex-col gap-1.5">
@@ -648,10 +708,19 @@ function LogDetail({ log, t }: { log: RequestLog; t: TFn }) {
         value={`${log.latencyMs} ms`}
       />
       <DetailRow label={t("admin.logs.fieldIp")} value={log.ip || none} />
-      <DetailRow label={t("admin.logs.fieldUser")} value={log.userId || none} />
+      <DetailRow
+        label={t("admin.logs.fieldUser")}
+        value={
+          log.userId ? (
+            <span title={log.userId}>{displayUser(log.userId)}</span>
+          ) : (
+            none
+          )
+        }
+      />
       <DetailRow
         label={t("admin.logs.fieldTime")}
-        value={formatDateTime(log.createdAt)}
+        value={formatTimestamp(log.createdAt)}
       />
       {log.attrs ? (
         <div className="flex flex-col gap-1">
@@ -707,7 +776,7 @@ function CallChain({
               </span>
             </div>
             <div className="mt-0.5 text-xs text-muted-foreground">
-              {formatDateTime(item.createdAt)}
+              {formatTimestamp(item.createdAt)}
               {item.status ? ` · ${item.status}` : ""}
             </div>
           </li>
