@@ -17,6 +17,9 @@ import (
 
 const logSinkBuffer = 1024
 
+// healthCheckPath is the liveness endpoint; its polling is excluded from logs.
+const healthCheckPath = "/healthz"
+
 // RequestLogService persists structured logs and serves log queries. It
 // implements logger.Sink using a buffered channel drained by a background
 // goroutine, so logging never blocks request handling.
@@ -41,7 +44,8 @@ func NewRequestLogService(logs *repository.RequestLogRepository) *RequestLogServ
 func (s *RequestLogService) Write(_ context.Context, rec logger.Record) {
 	// Skip the log feature's own traffic so browsing logs doesn't generate
 	// more logs — otherwise each list/detail/chain call pollutes the table.
-	if isLogPath(rec.Path) {
+	// Also skip the health-check endpoint, whose polling is noise.
+	if isLogPath(rec.Path) || rec.Path == healthCheckPath {
 		return
 	}
 

@@ -71,6 +71,12 @@ func (r *RequestLogRepository) List(ctx context.Context, filter LogFilter, offse
 		// Never surface the log feature's own traffic (also excludes any such
 		// rows persisted before the sink began skipping them).
 		q = q.Where("path <> ? AND path NOT LIKE ?", "/api/logs", "/api/logs/%")
+		// Hide the health-check endpoint; its polling adds noise, not signal.
+		q = q.Where("path <> ?", "/healthz")
+		// Only list the per-request summary rows emitted by the request logger
+		// middleware; internal function logs sharing the trace id stay hidden
+		// here and remain visible in the call chain (FindByTraceID).
+		q = q.Where("message = ?", model.RequestSummaryMessage)
 		if filter.Keyword != "" {
 			like := "%" + filter.Keyword + "%"
 			// Keyword also matches the acting user's name, resolved through the

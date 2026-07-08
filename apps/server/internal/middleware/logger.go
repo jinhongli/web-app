@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
+	"github.com/web-app/server/internal/model"
 	"github.com/web-app/server/internal/reqctx"
 )
 
@@ -41,7 +42,7 @@ func RequestLogger(logger *slog.Logger) gin.HandlerFunc {
 		c.Next()
 
 		status := c.Writer.Status()
-		logger.LogAttrs(c.Request.Context(), levelForStatus(status), "request",
+		logger.LogAttrs(c.Request.Context(), levelForStatus(status), model.RequestSummaryMessage,
 			slog.String("method", c.Request.Method),
 			slog.String("path", c.Request.URL.Path),
 			slog.Int("status", status),

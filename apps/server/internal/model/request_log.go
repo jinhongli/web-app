@@ -12,6 +12,11 @@ const (
 	LogLevelError LogLevel = "error"
 )
 
+// RequestSummaryMessage is the message the request-logger middleware uses for
+// the per-request summary row. Internal function logs share the trace id but
+// carry their own messages, so this value distinguishes the two.
+const RequestSummaryMessage = "request"
+
 // RequestLog is an append-only structured log entry. Entries sharing a TraceID
 // form the call chain of a single request. It never stores request or response
 // bodies.
