@@ -76,6 +76,57 @@ function FlatLinks({
   )
 }
 
+function CollapsibleGroup({
+  link: Link,
+  group,
+}: {
+  link: LinkComponent
+  group: NavGroup
+}) {
+  const Icon = group.icon
+  const active = group.defaultOpen ?? false
+  // Controlled open state: the Collapsible lives in a persistent layout, so
+  // driving `open` from the pathname-derived `defaultOpen` would flip an
+  // already-initialized uncontrolled Collapsible on navigation (Base UI warns).
+  // Seed from the active state and auto-expand when navigation activates the
+  // group, while leaving the user free to toggle it otherwise.
+  const [open, setOpen] = React.useState(active)
+
+  React.useEffect(() => {
+    if (active) {
+      setOpen(true)
+    }
+  }, [active])
+
+  return (
+    <SidebarMenuCollapsible open={open} onOpenChange={setOpen}>
+      <SidebarMenuCollapsibleTrigger
+        render={
+          <SidebarMenuButton tooltip={group.title}>
+            {Icon ? <Icon /> : null}
+            <span>{group.title}</span>
+            <IconChevronRight className="ml-auto transition-transform duration-200 group-data-[open]/menu-item:rotate-90" />
+          </SidebarMenuButton>
+        }
+      />
+      <SidebarMenuCollapsiblePanel>
+        <SidebarMenuSub>
+          {group.items.map((item) => (
+            <SidebarMenuSubItem key={item.url}>
+              <SidebarMenuSubButton
+                isActive={item.isActive}
+                render={<Link href={item.url} />}
+              >
+                <span>{item.title}</span>
+              </SidebarMenuSubButton>
+            </SidebarMenuSubItem>
+          ))}
+        </SidebarMenuSub>
+      </SidebarMenuCollapsiblePanel>
+    </SidebarMenuCollapsible>
+  )
+}
+
 function CollapsibleGroups({
   link: Link,
   groups,
@@ -89,39 +140,9 @@ function CollapsibleGroups({
     <SidebarGroup className={className}>
       <SidebarGroupContent>
         <SidebarMenu>
-          {groups.map((group) => {
-            const Icon = group.icon
-            return (
-              <SidebarMenuCollapsible
-                key={group.title}
-                defaultOpen={group.defaultOpen}
-              >
-                <SidebarMenuCollapsibleTrigger
-                  render={
-                    <SidebarMenuButton tooltip={group.title}>
-                      {Icon ? <Icon /> : null}
-                      <span>{group.title}</span>
-                      <IconChevronRight className="ml-auto transition-transform duration-200 group-data-[open]/menu-item:rotate-90" />
-                    </SidebarMenuButton>
-                  }
-                />
-                <SidebarMenuCollapsiblePanel>
-                  <SidebarMenuSub>
-                    {group.items.map((item) => (
-                      <SidebarMenuSubItem key={item.url}>
-                        <SidebarMenuSubButton
-                          isActive={item.isActive}
-                          render={<Link href={item.url} />}
-                        >
-                          <span>{item.title}</span>
-                        </SidebarMenuSubButton>
-                      </SidebarMenuSubItem>
-                    ))}
-                  </SidebarMenuSub>
-                </SidebarMenuCollapsiblePanel>
-              </SidebarMenuCollapsible>
-            )
-          })}
+          {groups.map((group) => (
+            <CollapsibleGroup key={group.title} link={Link} group={group} />
+          ))}
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>

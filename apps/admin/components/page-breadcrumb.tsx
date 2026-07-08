@@ -1,5 +1,6 @@
 "use client"
 
+import { Fragment } from "react"
 import { usePathname } from "next/navigation"
 import { useTranslation, type TranslationKey } from "@workspace/i18n"
 import {
@@ -32,16 +33,16 @@ export function PageBreadcrumb() {
         {trail.map((labelKey, index) => {
           const label = t(labelKey)
           return (
-            <BreadcrumbItem key={`${labelKey}-${index}`}>
-              {index === lastIndex ? (
-                <BreadcrumbPage>{label}</BreadcrumbPage>
-              ) : (
-                <>
+            <Fragment key={`${labelKey}-${index}`}>
+              <BreadcrumbItem>
+                {index === lastIndex ? (
+                  <BreadcrumbPage>{label}</BreadcrumbPage>
+                ) : (
                   <span>{label}</span>
-                  <BreadcrumbSeparator />
-                </>
-              )}
-            </BreadcrumbItem>
+                )}
+              </BreadcrumbItem>
+              {index !== lastIndex && <BreadcrumbSeparator />}
+            </Fragment>
           )
         })}
       </BreadcrumbList>
