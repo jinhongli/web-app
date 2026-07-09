@@ -3,7 +3,7 @@
  *
  * All three apps read one session from a cookie. Because browser cookies are
  * keyed by host (not port), a cookie set on `localhost` is shared across
- * `localhost:3000` (web), `:3001` (admin), and `:3002` (doc) in development.
+ * `localhost:3520` (web), `:3521` (admin), and `:3522` (doc) in development.
  * In production the apps live on sibling subdomains, so the cookie is scoped to
  * the shared parent domain via `NEXT_PUBLIC_AUTH_COOKIE_DOMAIN`.
  *
@@ -23,11 +23,11 @@ export const AUTH_COOKIE_DOMAIN =
 
 /** Public origins of each app, used to build cross-app redirect URLs. */
 export const WEB_URL =
-  process.env.NEXT_PUBLIC_WEB_URL ?? "http://localhost:3000"
+  process.env.NEXT_PUBLIC_WEB_URL ?? "http://localhost:3520"
 export const ADMIN_URL =
-  process.env.NEXT_PUBLIC_ADMIN_URL ?? "http://localhost:3001"
+  process.env.NEXT_PUBLIC_ADMIN_URL ?? "http://localhost:3521"
 export const DOC_URL =
-  process.env.NEXT_PUBLIC_DOC_URL ?? "http://localhost:3002"
+  process.env.NEXT_PUBLIC_DOC_URL ?? "http://localhost:3522"
 
 /** The app that owns the login screen — the single SSO entry point. */
 export const LOGIN_ORIGIN = WEB_URL

@@ -6,7 +6,7 @@ shadcn's Base UI variant; icons are `@tabler/icons-react`.
 
 ## Apps
 
-### web (`apps/web`, :3000)
+### web (`apps/web`, :3520)
 
 Public-facing site.
 
@@ -29,7 +29,7 @@ Public-facing site.
   menu is hidden on this route (`components/global-settings.tsx`) since the header
   carries its own controls.
 
-### admin (`apps/admin`, :3001)
+### admin (`apps/admin`, :3521)
 
 Admin console (restricted to the `admin` role). Renders the shared
 `@workspace/views` sidebar + header shell (`components/app-shell.tsx` +
@@ -53,7 +53,7 @@ language/theme controls; sign-out lives in the sidebar footer's avatar dropdown
   chain — every log sharing that trace id, oldest first, from
   `GET /api/logs/:id/chain`.
 
-### doc (`apps/doc`, :3002)
+### doc (`apps/doc`, :3522)
 
 Documentation site. Renders the shared `@workspace/views` sidebar + header shell
 (`components/app-sidebar.tsx` supplies two-level collapsible nav groups) wrapped
@@ -240,9 +240,9 @@ their origin after sign-in.
 ## Running
 
 ```bash
-pnpm --filter web dev      # :3000
-pnpm --filter admin dev    # :3001
-pnpm --filter doc dev      # :3002
+pnpm --filter web dev      # :3520
+pnpm --filter admin dev    # :3521
+pnpm --filter doc dev      # :3522
 ```
 
 Point the frontends at a running backend with

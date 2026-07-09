@@ -112,8 +112,8 @@ still issues and validates JWTs per request).
 
 - **One session, in a cookie.** `useAuthStore` is a zustand store persisted to a
   cookie (`src/store.ts`) rather than localStorage. Browsers key cookies by host,
-  not port, so a cookie set on `localhost` is visible to web (`:3000`), admin
-  (`:3001`), and doc (`:3002`) alike in dev. In production the apps live on
+  not port, so a cookie set on `localhost` is visible to web (`:3520`), admin
+  (`:3521`), and doc (`:3522`) alike in dev. In production the apps live on
   sibling subdomains and the cookie is scoped to the shared parent domain via
   `NEXT_PUBLIC_AUTH_COOKIE_DOMAIN`. Each app's `lib/auth-store.ts` just
   re-exports this store.

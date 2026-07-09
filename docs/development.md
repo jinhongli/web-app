@@ -57,9 +57,9 @@ pnpm dev
 Or per app:
 
 ```bash
-pnpm --filter web dev      # :3000
-pnpm --filter admin dev    # :3001
-pnpm --filter doc dev      # :3002
+pnpm --filter web dev      # :3520
+pnpm --filter admin dev    # :3521
+pnpm --filter doc dev      # :3522
 pnpm --filter server dev   # :8080
 ```
 
@@ -80,15 +80,13 @@ config is needed locally — see each app's `.env.example` and
 
 | App    | Default URL             |
 | ------ | ----------------------- |
-| web    | http://localhost:3000   |
-| admin  | http://localhost:3001   |
-| doc    | http://localhost:3002   |
+| web    | http://localhost:3520   |
+| admin  | http://localhost:3521   |
+| doc    | http://localhost:3522   |
 | server | http://localhost:8080   |
 
 Next.js dev servers fall back to the next free port if the default is taken
-(watch the startup log for the actual URL). Note `web` and `doc` both default to
-3002 when 3000/3001 are busy — start them explicitly on different ports if you
-need both.
+(watch the startup log for the actual URL).
 
 ## Quality gates
 
