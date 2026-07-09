@@ -68,7 +68,7 @@ UTC timestamps, and no password hash. This matches `@workspace/schemas`.
 
 - **Passwords**: bcrypt hashed (`internal/auth/password.go`).
 - **Tokens**: HS256 JWTs (`internal/auth/jwt.go`). Claims carry `uid`, `role`,
-  and `typ` (`access` | `refresh`) plus `iat`/`exp`. Access TTL 15m, refresh TTL
+  and `typ` (`access` | `refresh`) plus `iat`/`exp`. Access TTL 24h, refresh TTL
   168h by default. `Parse` rejects non-HMAC algorithms.
 - **Middleware** (`internal/middleware/auth.go`):
   - `Auth` requires `Authorization: Bearer <token>`, accepts only `access`
@@ -137,7 +137,7 @@ environment, with defaults. See `.env.example`:
 | `APP_ENV`           | `development`                    | `development` → text logs, debug level; else JSON |
 | `DATABASE_DSN`      | `host=localhost ... dbname=webapp` | PostgreSQL DSN           |
 | `JWT_SECRET`        | `dev-insecure-secret-change-me`  | HMAC signing key           |
-| `ACCESS_TOKEN_TTL`  | `15m`                            | access token lifetime      |
+| `ACCESS_TOKEN_TTL`  | `24h`                            | access token lifetime      |
 | `REFRESH_TOKEN_TTL` | `168h`                           | refresh token lifetime     |
 
 ## Running & testing

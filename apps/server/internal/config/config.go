@@ -25,7 +25,7 @@ func Load() *Config {
 		Port:            getEnv("PORT", "8080"),
 		DatabaseDSN:     getEnv("DATABASE_DSN", "host=localhost user=postgres password=postgres dbname=webapp port=5432 sslmode=disable"),
 		JWTSecret:       getEnv("JWT_SECRET", "dev-insecure-secret-change-me"),
-		AccessTokenTTL:  getDuration("ACCESS_TOKEN_TTL", 15*time.Minute),
+		AccessTokenTTL:  getDuration("ACCESS_TOKEN_TTL", 24*time.Hour),
 		RefreshTokenTTL: getDuration("REFRESH_TOKEN_TTL", 7*24*time.Hour),
 		Env:             getEnv("APP_ENV", "development"),
 	}
