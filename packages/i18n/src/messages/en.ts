@@ -191,9 +191,22 @@ export const en = {
       empty: "No users found.",
       makeUser: "Make user",
       makeAdmin: "Make admin",
+      delete: "Delete",
       updated: "Updated {{name}}",
       updateFailed: "Update failed",
       loadFailed: "Failed to load users",
+      deleted: "Deleted {{name}}",
+      deleteFailed: "Delete failed",
+      confirm: "Confirm",
+      cancel: "Cancel",
+      roleConfirmTitle: "Change role?",
+      roleConfirmToAdmin:
+        "Grant admin privileges to {{name}}? They will be able to manage all users.",
+      roleConfirmToUser:
+        "Revoke admin privileges from {{name}}? They will lose access to this console.",
+      deleteConfirmTitle: "Delete user?",
+      deleteConfirmDescription:
+        "Delete {{name}} ({{email}})? This removes their access. This action cannot be undone.",
     },
     logs: {
       title: "Logs",

@@ -61,6 +61,7 @@ func New(deps Deps) *gin.Engine {
 			users.GET("", middleware.RequireAdmin(), userHandler.List)
 			users.GET("/:id", middleware.RequireAdmin(), userHandler.Get)
 			users.PATCH("/:id", middleware.RequireAdmin(), userHandler.Update)
+			users.DELETE("/:id", middleware.RequireAdmin(), userHandler.Delete)
 		}
 
 		logs := api.Group("/logs")

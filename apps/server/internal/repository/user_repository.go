@@ -76,3 +76,15 @@ func (r *UserRepository) List(ctx context.Context, offset, limit int) ([]model.U
 func (r *UserRepository) Update(ctx context.Context, user *model.User) error {
 	return r.db.WithContext(ctx).Save(user).Error
 }
+
+// Delete soft-deletes a user by id. It reports ErrNotFound when no row matches.
+func (r *UserRepository) Delete(ctx context.Context, id string) error {
+	result := r.db.WithContext(ctx).Where("id = ?", id).Delete(&model.User{})
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return ErrNotFound
+	}
+	return nil
+}

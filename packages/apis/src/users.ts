@@ -1,3 +1,5 @@
+import { z } from "zod"
+
 import { paginatedSchema } from "@workspace/schemas/common"
 import {
   userSchema,
@@ -37,4 +39,11 @@ export function updateUser(
 
 export function getCurrentUser(token: string): Promise<User> {
   return apiFetch("/api/users/me", userSchema, { token })
+}
+
+export function deleteUser(token: string, id: string): Promise<void> {
+  return apiFetch(`/api/users/${id}`, z.void(), {
+    method: "DELETE",
+    token,
+  })
 }

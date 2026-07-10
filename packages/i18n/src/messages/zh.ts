@@ -192,9 +192,22 @@ export const zh: Messages = {
       empty: "暂无用户。",
       makeUser: "设为普通用户",
       makeAdmin: "设为管理员",
+      delete: "删除",
       updated: "已更新 {{name}}",
       updateFailed: "更新失败",
       loadFailed: "加载用户失败",
+      deleted: "已删除 {{name}}",
+      deleteFailed: "删除失败",
+      confirm: "确认",
+      cancel: "取消",
+      roleConfirmTitle: "变更角色？",
+      roleConfirmToAdmin:
+        "确定授予 {{name}} 管理员权限吗？该用户将可以管理所有用户。",
+      roleConfirmToUser:
+        "确定收回 {{name}} 的管理员权限吗？该用户将无法访问此后台。",
+      deleteConfirmTitle: "删除用户？",
+      deleteConfirmDescription:
+        "确定删除 {{name}}（{{email}}）吗？这将移除其访问权限，且操作不可撤销。",
     },
     logs: {
       title: "日志",

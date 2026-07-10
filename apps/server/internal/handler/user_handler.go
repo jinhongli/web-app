@@ -109,3 +109,22 @@ func (h *UserHandler) Update(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, toUserDTO(user))
 }
+
+// Delete handles DELETE /api/users/:id.
+func (h *UserHandler) Delete(c *gin.Context) {
+	actingUserID := c.GetString(middleware.ContextUserID)
+	err := h.users.Delete(c.Request.Context(), c.Param("id"), actingUserID)
+	if errors.Is(err, service.ErrForbidden) {
+		respondError(c, http.StatusForbidden, "forbidden", "you cannot delete your own account")
+		return
+	}
+	if errors.Is(err, service.ErrUserNotFound) {
+		respondError(c, http.StatusNotFound, "not_found", "user not found")
+		return
+	}
+	if err != nil {
+		respondError(c, http.StatusInternalServerError, "internal", "failed to delete user")
+		return
+	}
+	c.Status(http.StatusNoContent)
+}

@@ -84,3 +84,19 @@ func (s *UserService) Update(ctx context.Context, id string, input UpdateInput) 
 	slog.InfoContext(ctx, "user.updated", slog.String("targetUserId", id))
 	return user, nil
 }
+
+// Delete removes a user by id. Deleting yourself is rejected with ErrForbidden
+// so an admin can't accidentally lock themselves out.
+func (s *UserService) Delete(ctx context.Context, id, actingUserID string) error {
+	if id == actingUserID {
+		return ErrForbidden
+	}
+	if err := s.users.Delete(ctx, id); err != nil {
+		if errors.Is(err, repository.ErrNotFound) {
+			return ErrUserNotFound
+		}
+		return err
+	}
+	slog.InfoContext(ctx, "user.deleted", slog.String("targetUserId", id))
+	return nil
+}
