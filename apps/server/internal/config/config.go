@@ -22,7 +22,7 @@ func Load() *Config {
 	_ = godotenv.Load()
 
 	return &Config{
-		Port:            getEnv("PORT", "8080"),
+		Port:            getEnv("PORT", "3528"),
 		DatabaseDSN:     getEnv("DATABASE_DSN", "host=localhost user=postgres password=postgres dbname=webapp port=5432 sslmode=disable"),
 		JWTSecret:       getEnv("JWT_SECRET", "dev-insecure-secret-change-me"),
 		AccessTokenTTL:  getDuration("ACCESS_TOKEN_TTL", 24*time.Hour),

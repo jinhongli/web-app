@@ -158,7 +158,7 @@ Import types here rather than redeclaring them (`import type { User } from
 
 Typed `fetch` wrapper (`apiFetch`) that validates every response against a
 schema and throws `ApiRequestError` on failure. Base URL comes from
-`NEXT_PUBLIC_API_BASE_URL` (default `http://localhost:8080`). Add new endpoints
+`NEXT_PUBLIC_API_BASE_URL` (default `http://localhost:3528`). Add new endpoints
 here (`auth.ts`, `users.ts`) instead of calling `fetch` in components.
 
 ### @workspace/utils
@@ -246,7 +246,7 @@ pnpm --filter doc dev      # :3522
 ```
 
 Point the frontends at a running backend with
-`NEXT_PUBLIC_API_BASE_URL=http://localhost:8080`. Dev servers auto-fall back to
+`NEXT_PUBLIC_API_BASE_URL=http://localhost:3528`. Dev servers auto-fall back to
 the next free port if the default is taken.
 
 SSO needs each app to know the others' public origins. The defaults match the

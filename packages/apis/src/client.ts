@@ -2,7 +2,7 @@ import { apiErrorSchema } from "@workspace/schemas/common"
 import type { ZodType } from "zod"
 
 export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080"
+  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3528"
 
 export class ApiRequestError extends Error {
   readonly status: number

@@ -103,7 +103,7 @@ logs that are persisted, so a request's full call chain can be reconstructed.
 
 ## Endpoints
 
-Base URL `http://localhost:8080`. Registered in `internal/router/router.go`.
+Base URL `http://localhost:3528`. Registered in `internal/router/router.go`.
 
 | Method | Path                 | Auth  | Notes                          |
 | ------ | -------------------- | ----- | ------------------------------ |
@@ -133,7 +133,7 @@ environment, with defaults. See `.env.example`:
 
 | Var                 | Default                          | Purpose                    |
 | ------------------- | -------------------------------- | -------------------------- |
-| `PORT`              | `8080`                           | listen port                |
+| `PORT`              | `3528`                           | listen port                |
 | `APP_ENV`           | `development`                    | `development` → text logs, debug level; else JSON |
 | `DATABASE_DSN`      | `host=localhost ... dbname=webapp` | PostgreSQL DSN           |
 | `JWT_SECRET`        | `dev-insecure-secret-change-me`  | HMAC signing key           |
@@ -158,8 +158,8 @@ cd apps/server && make run     # run | build | tidy | vet | fmt
 Smoke test:
 
 ```bash
-curl -s localhost:8080/healthz
-curl -s -X POST localhost:8080/api/auth/register \
+curl -s localhost:3528/healthz
+curl -s -X POST localhost:3528/api/auth/register \
   -H 'Content-Type: application/json' \
   -d '{"email":"a@example.com","name":"A","password":"password123"}'
 ```

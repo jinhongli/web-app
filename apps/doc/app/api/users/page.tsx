@@ -13,7 +13,7 @@ export default function ApiUsersPage() {
           {t("doc.nav.apiUsers")}
         </h1>
         <p className="text-xs text-muted-foreground">
-          {t("doc.api.description", { baseUrl: "http://localhost:8080" })}
+          {t("doc.api.description", { baseUrl: "http://localhost:3528" })}
         </p>
       </header>
 

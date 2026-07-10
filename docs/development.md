@@ -60,13 +60,13 @@ Or per app:
 pnpm --filter web dev      # :3520
 pnpm --filter admin dev    # :3521
 pnpm --filter doc dev      # :3522
-pnpm --filter server dev   # :8080
+pnpm --filter server dev   # :3528
 ```
 
 Point frontends at the backend with `NEXT_PUBLIC_API_BASE_URL`:
 
 ```bash
-NEXT_PUBLIC_API_BASE_URL=http://localhost:8080 pnpm --filter web dev
+NEXT_PUBLIC_API_BASE_URL=http://localhost:3528 pnpm --filter web dev
 ```
 
 The apps also share one SSO session (a cookie readable across the localhost
@@ -83,7 +83,7 @@ config is needed locally — see each app's `.env.example` and
 | web    | http://localhost:3520   |
 | admin  | http://localhost:3521   |
 | doc    | http://localhost:3522   |
-| server | http://localhost:8080   |
+| server | http://localhost:3528   |
 
 Next.js dev servers fall back to the next free port if the default is taken
 (watch the startup log for the actual URL).
@@ -100,16 +100,16 @@ pnpm format      # prettier / gofmt
 ## Backend smoke test
 
 ```bash
-curl -s localhost:8080/healthz            # {"status":"ok"}
+curl -s localhost:3528/healthz            # {"status":"ok"}
 
 # register -> returns { user, tokens }
-curl -s -X POST localhost:8080/api/auth/register \
+curl -s -X POST localhost:3528/api/auth/register \
   -H 'Content-Type: application/json' \
   -d '{"email":"a@example.com","name":"A","password":"password123"}'
 
 # authenticated request
 TOKEN=... # accessToken from the response
-curl -s localhost:8080/api/users/me -H "Authorization: Bearer $TOKEN"
+curl -s localhost:3528/api/users/me -H "Authorization: Bearer $TOKEN"
 ```
 
 ## Inspecting the database
