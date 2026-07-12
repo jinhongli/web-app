@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { IconUsers } from "@tabler/icons-react"
+import { IconListDetails, IconUsers } from "@tabler/icons-react"
 import { useTranslation } from "@workspace/i18n"
 import {
   Card,
@@ -34,6 +34,19 @@ export default function Page() {
               </CardTitle>
               <CardDescription>
                 {t("admin.home.usersCardDescription")}
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        </Link>
+        <Link href="/logs" className="block">
+          <Card size="sm" className="h-full transition-colors hover:bg-muted/40">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <IconListDetails className="size-4" />
+                {t("admin.home.logsCardTitle")}
+              </CardTitle>
+              <CardDescription>
+                {t("admin.home.logsCardDescription")}
               </CardDescription>
             </CardHeader>
           </Card>

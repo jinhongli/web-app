@@ -170,6 +170,9 @@ export const en = {
       usersCardTitle: "Users",
       usersCardDescription:
         "Browse registered accounts and switch a user between the user and admin roles.",
+      logsCardTitle: "Logs",
+      logsCardDescription:
+        "Search request logs and inspect their call chains across the backend.",
     },
     access: {
       title: "Admin access required",

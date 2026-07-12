@@ -38,7 +38,7 @@ export function AppSidebar() {
     <ViewsAppSidebar
       variant="inset"
       link={Link}
-      brand={{ title: t("admin.nav.brand"), url: "/users", icon: IconShieldLock }}
+      brand={{ title: t("admin.nav.brand"), url: "/", icon: IconShieldLock }}
       sections={sections}
       user={{
         user: {

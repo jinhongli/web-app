@@ -171,6 +171,8 @@ export const zh: Messages = {
         "Web App 后端的管理员控制台。可从左侧边栏管理已注册的用户及其角色。",
       usersCardTitle: "用户",
       usersCardDescription: "查看已注册账号，并在普通用户与管理员角色之间切换。",
+      logsCardTitle: "日志",
+      logsCardDescription: "检索请求日志，并查看后端各条链路的调用链路。",
     },
     access: {
       title: "需要管理员权限",
