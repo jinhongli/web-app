@@ -266,6 +266,7 @@ export const zh: Messages = {
   doc: {
     nav: {
       brand: "Web App 文档",
+      architecture: "系统架构",
       apiReference: "API 参考",
       databaseSchema: "数据库表设计",
       schemaEr: "ER 图",
@@ -287,6 +288,9 @@ export const zh: Messages = {
       schemaCardTitle: "数据库表设计",
       schemaCardDescription:
         "由 GORM 模型迁移生成的 PostgreSQL 表结构，包含 ER 图与 users 表。",
+      architectureCardTitle: "系统架构",
+      architectureCardDescription:
+        "整个 monorepo 如何组合在一起——应用、共享包、数据流以及跨应用的单点登录。",
       apiCardTitle: "API 参考",
       apiCardDescription: "后端暴露的 HTTP 接口，按 auth 与 users 分组。",
     },
@@ -304,6 +308,53 @@ export const zh: Messages = {
       listSummary: "列出用户（分页）。仅限管理员。",
       getSummary: "根据 id 获取单个用户。仅限管理员。",
       updateSummary: "更新用户的姓名或角色。仅限管理员。",
+    },
+    architecture: {
+      title: "系统架构",
+      description:
+        "一个 pnpm + Turborepo monorepo：三个 Next.js 前端与一个 Go 后端，通过共享 TypeScript 包串联在一起。",
+      overviewTitle: "总览",
+      overviewBody:
+        "web、admin、doc 三个应用都是轻量的 Next.js 前端，渲染同一套共享 app-shell，并通过带类型的 HTTP 契约与唯一的 Go + Gin 后端通信。所有可复用的部分——UI、HTTP 客户端、数据 schema、鉴权会话与文案——都沉淀在版本化的 workspace 包中，各应用之间不重复实现逻辑。",
+      diagramTitle: "系统结构图",
+      diagramDescription:
+        "前端依赖共享包并调用 Go API；后端独占 Postgres。箭头指向依赖与数据流的方向。",
+      layersTitle: "组成模块",
+      layerAppsTitle: "应用",
+      layerAppsBody:
+        "web（门户站点 + 仪表盘）、admin（用户管理）、doc（本参考文档）——各自是运行在独立开发端口上的 Next.js 应用。",
+      layerPackagesTitle: "共享包",
+      layerPackagesBody:
+        "apis、schemas、ui、auth、views、i18n、utils——供应用组合使用的共享代码；包永远不反向依赖应用。",
+      layerServerTitle: "Go 后端",
+      layerServerBody:
+        "独立的 Gin 服务，采用 repository → service → handler → router 的分层结构，负责签发与校验 JWT，并通过 GORM 持久化到 PostgreSQL。",
+      layerDataTitle: "数据存储",
+      layerDataBody: "PostgreSQL，由 GORM 模型自动迁移生成，采用软删除。",
+      conceptsTitle: "核心概念",
+      conceptContractTitle: "Schema 作为唯一事实来源",
+      conceptContractBody:
+        "@workspace/schemas 用 zod 将每个模型定义一次并推导出 TypeScript 类型。@workspace/apis 在运行时校验响应，Go 侧的 DTO 则手写以匹配相同的 JSON 结构。",
+      conceptSsoTitle: "跨应用单点登录",
+      conceptSsoBody:
+        "会话保存在以 host（而非 port）为键的 cookie 中，因此在 web 应用登录一次后，admin 与 doc 也可见。仅 web 应用拥有登录页，其它应用会把未登录访客重定向到该页。",
+      conceptRolesTitle: "各应用独立校验角色",
+      conceptRolesBody:
+        "SSO 只共享身份。admin 后台额外要求管理员角色；任意接口返回 401 都会清空共享会话并跳回 web 登录页。",
+      conceptI18nTitle: "每种语言一份文案目录",
+      conceptI18nBody:
+        "@workspace/i18n 通过 react-i18next 承载所有前端的文案。英文目录是类型来源，任一语言缺失键都会导致类型检查失败。",
+      conceptBuildTitle: "Turborepo 构建图",
+      conceptBuildBody:
+        "Turbo 带缓存地在各 workspace 间运行 dev/build/lint/typecheck。Go server 通过自身的 package.json 参与其中，因此一条 pnpm 命令即可覆盖后端。",
+      flowTitle: "请求生命周期——登录",
+      flowStep1: "web 登录表单用 loginSchema（zod）校验输入。",
+      flowStep2:
+        "调用 @workspace/apis 的 login()，向 /api/auth/login 发起 POST，并用 authResultSchema 解析响应。",
+      flowStep3:
+        "Go server 完成认证，签发一对 JWT 访问/刷新令牌，返回 { user, tokens }。",
+      flowStep4:
+        "表单将结果写入共享的 @workspace/auth cookie 存储，随后跳转到 ?next=<url>（若存在，否则跳 /dashboard）。",
     },
     schema: {
       title: "数据库表设计",

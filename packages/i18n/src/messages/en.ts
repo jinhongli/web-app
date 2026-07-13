@@ -266,6 +266,7 @@ export const en = {
   doc: {
     nav: {
       brand: "Web App Docs",
+      architecture: "System Architecture",
       apiReference: "API Reference",
       databaseSchema: "Database Schema",
       schemaEr: "ER Diagram",
@@ -287,6 +288,9 @@ export const en = {
       schemaCardTitle: "Database Schema",
       schemaCardDescription:
         "PostgreSQL tables migrated from the GORM models, including the ER diagram and the users table.",
+      architectureCardTitle: "System Architecture",
+      architectureCardDescription:
+        "How the monorepo fits together — the apps, shared packages, data flow, and cross-app single sign-on.",
       apiCardTitle: "API Reference",
       apiCardDescription:
         "HTTP endpoints exposed by the backend, grouped into auth and users.",
@@ -305,6 +309,54 @@ export const en = {
       listSummary: "List users (paginated). Admin only.",
       getSummary: "Fetch a single user by id. Admin only.",
       updateSummary: "Update a user's name or role. Admin only.",
+    },
+    architecture: {
+      title: "System Architecture",
+      description:
+        "A pnpm + Turborepo monorepo: three Next.js frontends and one Go backend, tied together by shared TypeScript packages.",
+      overviewTitle: "Overview",
+      overviewBody:
+        "The web, admin, and doc apps are thin Next.js frontends that render the same shared app-shell and talk to a single Go + Gin backend over a typed HTTP contract. Everything reusable — UI, HTTP client, data schemas, auth session, and copy — lives in versioned workspace packages so no logic is duplicated across apps.",
+      diagramTitle: "System diagram",
+      diagramDescription:
+        "Frontends depend on shared packages and call the Go API; the backend owns Postgres. Arrows point in the direction of dependency and data flow.",
+      layersTitle: "Building blocks",
+      layerAppsTitle: "Apps",
+      layerAppsBody:
+        "web (public site + dashboard), admin (user management), and doc (this reference) — each a Next.js app on its own dev port.",
+      layerPackagesTitle: "Shared packages",
+      layerPackagesBody:
+        "apis, schemas, ui, auth, views, i18n, utils — shared code the apps compose; packages never depend on apps.",
+      layerServerTitle: "Go backend",
+      layerServerBody:
+        "A standalone Gin service with a repository → service → handler → router layering, issuing and validating JWTs and persisting to PostgreSQL via GORM.",
+      layerDataTitle: "Data store",
+      layerDataBody:
+        "PostgreSQL, migrated automatically from the GORM models with soft deletes.",
+      conceptsTitle: "Core concepts",
+      conceptContractTitle: "Schemas as the single source of truth",
+      conceptContractBody:
+        "@workspace/schemas defines every model once with zod and derives the TypeScript types. @workspace/apis validates responses at runtime, and the Go DTOs are hand-written to match the same JSON shape.",
+      conceptSsoTitle: "Single sign-on across apps",
+      conceptSsoBody:
+        "One session lives in a cookie keyed by host (not port), so signing in once on the web app is visible to admin and doc. Only the web app owns the login screen; the others redirect signed-out visitors to it.",
+      conceptRolesTitle: "Roles enforced per app",
+      conceptRolesBody:
+        "SSO only shares identity. The admin console additionally requires an admin role, and any 401 clears the shared session and bounces to the web login.",
+      conceptI18nTitle: "One catalog per locale",
+      conceptI18nBody:
+        "@workspace/i18n holds all copy for every frontend via react-i18next. The English catalog is the type source, so a missing key in any locale fails typecheck.",
+      conceptBuildTitle: "Turborepo build graph",
+      conceptBuildBody:
+        "Turbo runs dev/build/lint/typecheck across workspaces with caching. The Go server participates via its package.json, so a single pnpm command covers the backend too.",
+      flowTitle: "Request lifecycle — login",
+      flowStep1: "The web login form validates input with loginSchema (zod).",
+      flowStep2:
+        "It calls login() from @workspace/apis, which POSTs to /api/auth/login and parses the response with authResultSchema.",
+      flowStep3:
+        "The Go server authenticates, signs a JWT access/refresh pair, and returns { user, tokens }.",
+      flowStep4:
+        "The form saves the result to the shared @workspace/auth cookie store, then routes to ?next=<url> if present (else /dashboard).",
     },
     schema: {
       title: "Database Schema",

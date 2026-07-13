@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { IconDatabase, IconFileText } from "@tabler/icons-react"
+import { IconDatabase, IconFileText, IconSitemap } from "@tabler/icons-react"
 import { currentUrl, useAuthStore, webLoginUrl } from "@workspace/auth"
 import { useTranslation } from "@workspace/i18n"
 import { Button } from "@workspace/ui/components/button"
@@ -62,6 +62,20 @@ export default function Page() {
       </header>
 
       <div className="grid gap-3 sm:grid-cols-2">
+        <Link href="/architecture" className="block">
+          <Card size="sm" className="h-full transition-colors hover:bg-muted/40">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <IconSitemap className="size-4" />
+                {t("doc.home.architectureCardTitle")}
+              </CardTitle>
+              <CardDescription>
+                {t("doc.home.architectureCardDescription")}
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        </Link>
+
         <Link href="/schema" className="block">
           <Card size="sm" className="h-full transition-colors hover:bg-muted/40">
             <CardHeader>

@@ -2,7 +2,12 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { IconBook, IconDatabase, IconFileText } from "@tabler/icons-react"
+import {
+  IconBook,
+  IconDatabase,
+  IconFileText,
+  IconSitemap,
+} from "@tabler/icons-react"
 import { currentUrl, useAuthStore, webLoginUrl } from "@workspace/auth"
 import { useTranslation, type TranslationKey } from "@workspace/i18n"
 import { AppSidebar as ViewsAppSidebar } from "@workspace/views/app-sidebar"
@@ -46,6 +51,17 @@ export function AppSidebar() {
   const clear = useAuthStore((state) => state.clear)
 
   const sections: SidebarSection[] = [
+    {
+      kind: "links",
+      items: [
+        {
+          title: t("doc.nav.architecture"),
+          url: "/architecture",
+          icon: IconSitemap,
+          isActive: isItemActive(pathname, "/architecture"),
+        },
+      ],
+    },
     {
       kind: "groups",
       items: navGroups.map((group) => ({

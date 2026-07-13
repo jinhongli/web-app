@@ -12,6 +12,7 @@ import {
 } from "@workspace/ui/components/breadcrumb"
 
 const trails: Record<string, TranslationKey[]> = {
+  "/architecture": ["doc.nav.architecture"],
   "/schema": ["doc.nav.databaseSchema", "doc.nav.schemaEr"],
   "/schema/users": ["doc.nav.databaseSchema", "doc.nav.schemaUsers"],
   "/api/auth": ["doc.nav.apiReference", "doc.nav.apiAuth"],
